@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0d10">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0d10'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23c8ff3d'/%3E%3C/svg%3E">
+<title>shutlite</title>
+<style>
+  :root{
+    --bg:#0b0d10; --surface:#14171c; --surface-2:#1a1f26; --inset:#0e1116;
+    --border:rgba(255,255,255,.09); --border-soft:rgba(255,255,255,.06);
+    --text:#f2f4f0; --secondary:#c3cbc2; --muted:#a7b0a5;
+    --volt:#c8ff3d; --volt-ink:#10130a; --danger:#ff8585; --danger-bg:#2a1518;
+    --ring-track:#262c33; --toast:#22282f;
+    --r-card:20px; --r-inner:12px; --r-nested:8px; --pad-card:20px;
+    --font:system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html{-webkit-font-smoothing:antialiased}
+  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#18202a 0%,var(--bg) 55%) fixed,var(--bg);
+    color:var(--text);font-family:var(--font);min-block-size:100vh;
+    display:flex;justify-content:center;padding:0 0 calc(32px + env(safe-area-inset-bottom))}
+  .wrap{inline-size:100%;max-inline-size:460px;padding:20px 16px 0}
+  .sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-block:4px 16px}
+  .brand{display:flex;align-items:center;gap:10px;min-inline-size:0}
+  .dot{flex:none;inline-size:12px;block-size:12px;border-radius:50%;background:var(--volt);box-shadow:0 0 12px var(--volt)}
+  .dot.idle{background:#5b6360;box-shadow:none}
+  h1{font-size:20px;line-height:1.2;margin:0;letter-spacing:-.01em}
+  .sub{font-size:12.5px;color:var(--muted);margin:2px 0 0}
+  .pill{font-size:12px;font-weight:600;padding:8px 12px;border-radius:999px;border:1px solid var(--border);
+    background:var(--surface);color:var(--secondary);white-space:nowrap}
+  .pill.on{color:var(--volt-ink);background:var(--volt);border-color:transparent}
+  .pill.off{color:var(--danger);border-color:rgba(255,133,133,.35)}
+
+  .card{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r-card);
+    padding:var(--pad-card);margin-block-end:16px}
+  .card h2{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  .hint{font-size:13px;line-height:1.5;color:var(--secondary);margin:0 0 12px;text-wrap:pretty}
+  .split{border:0;border-block-start:1px solid var(--border-soft);margin:20px 0 16px}
+
+  /* herói */
+  .hero{text-align:center;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;inset:-40% -20% auto;height:220px;
+    background:radial-gradient(closest-side,rgba(200,255,61,.12),transparent);pointer-events:none;
+    opacity:0;transition-property:opacity;transition-duration:.3s}
+  .hero.live::before{opacity:1}
+  .hero h2{text-align:center}
+  .ring{inline-size:200px;block-size:200px;margin:4px auto 8px;display:block}
+  .ring .track{stroke:var(--ring-track)}
+  .ring .bar{stroke:var(--volt);stroke-linecap:round;transition-property:stroke-dashoffset;transition-duration:.3s}
+  .ring text{fill:var(--text);font-size:34px;font-weight:700;font-variant-numeric:tabular-nums}
+  .ring .cap{fill:var(--muted);font-size:11px;font-weight:500;letter-spacing:.08em}
+  #actionLabel{font-size:14px;color:var(--secondary);min-block-size:21px;margin:0}
+  #actionLabel strong{color:var(--text)}
+  .hero-actions{display:flex;gap:8px;margin-block-start:16px}
+  .hero-actions .btn{margin:0}
+
+  /* controles */
+  label,.lbl{display:block;font-size:13px;font-weight:500;color:var(--secondary);margin:0 0 6px}
+  input[type=text],input[type=password],input[type=time],input[type=number]{
+    inline-size:100%;font:inherit;font-size:16px;color:var(--text);background:var(--inset);
+    border:1px solid var(--border);border-radius:var(--r-inner);padding:12px;min-block-size:48px}
+  input:focus-visible,button:focus-visible{outline:2px solid var(--volt);outline-offset:2px}
+  input[type=range]{inline-size:100%;accent-color:var(--volt);min-block-size:44px;margin:0}
+  button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+  button:active{transform:scale(.96)}
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+  .seg{display:flex;gap:4px;background:var(--inset);border:1px solid var(--border);
+    border-radius:var(--r-inner);padding:4px;margin-block-end:16px}
+  .seg button{flex:1;border:1px solid transparent;background:transparent;color:var(--muted);
+    border-radius:var(--r-nested);min-block-size:40px;font-size:14px;font-weight:600;
+    transition-property:transform,background-color,color;transition-duration:150ms}
+  .seg button[aria-pressed=true]{background:var(--surface-2);color:var(--text);border-color:var(--border)}
+
+  .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-block-end:16px}
+  .chip{border:1px solid var(--border);background:var(--surface-2);color:var(--text);
+    border-radius:var(--r-inner);min-block-size:56px;font-size:16px;font-weight:700;
+    font-variant-numeric:tabular-nums;line-height:1.1;
+    transition-property:transform,border-color;transition-duration:150ms}
+  .chip small{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-block-start:2px}
+
+  .row{display:flex;gap:8px;align-items:stretch}
+  .row > *{flex:1;min-inline-size:0}
+  .row > .fit{flex:none}
+  .row > .narrow{flex:none;inline-size:96px}
+  .btn{inline-size:100%;border:none;border-radius:var(--r-inner);min-block-size:48px;padding:0 16px;
+    font-size:15px;font-weight:600;margin-block-start:8px;
+    transition-property:transform,background-color,opacity,filter;transition-duration:150ms}
+  .row > .btn{margin-block-start:0}
+  .btn-volt{background:var(--volt);color:var(--volt-ink);box-shadow:0 4px 24px rgba(200,255,61,.25)}
+  .btn-line{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
+  .btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid rgba(255,133,133,.35)}
+
+  /* acesso */
+  .qrbox{display:flex;gap:16px;align-items:center;background:#fff;color:#111;
+    border-radius:var(--r-inner);padding:12px}
+  #qr{flex:none;inline-size:140px;block-size:140px;display:flex;align-items:center;justify-content:center;
+    font-size:12px;color:#555;text-align:center;overflow-wrap:anywhere}
+  #qr img,#qr canvas{display:block}
+  .qrmeta{font-size:12.5px;line-height:1.5;overflow-wrap:anywhere;min-inline-size:0}
+  .qrmeta strong{display:block;font-size:13px;margin-block-end:4px}
+  .qrmeta span{display:block;margin-block-start:6px;color:#555}
+  .pinrow{display:flex;align-items:center;gap:12px;margin-block-start:12px;
+    background:var(--inset);border:1px solid var(--border);border-radius:var(--r-inner);padding:4px 4px 4px 12px}
+  .pinrow .lbl{margin:0}
+  .pinrow code{flex:1;font:inherit;font-size:18px;font-weight:700;letter-spacing:.14em;font-variant-numeric:tabular-nums}
+  .pinrow button{flex:none;border:1px solid var(--border);background:var(--surface-2);color:var(--text);
+    border-radius:var(--r-nested);min-block-size:40px;padding:0 12px;font-size:13px;font-weight:600}
+  .saved{font-size:13px;color:var(--secondary);margin:8px 0 0;min-block-size:20px}
+
+  footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.6}
+
+  /* toast + diálogos */
+  #toast{position:fixed;inset-inline:16px;inset-block-end:calc(16px + env(safe-area-inset-bottom));
+    display:flex;justify-content:center;pointer-events:none;z-index:50;
+    opacity:0;transition-property:opacity;transition-duration:200ms}
+  #toast.show{opacity:1}
+  #toast span{background:var(--toast);border:1px solid var(--border);color:var(--text);
+    padding:12px 16px;border-radius:var(--r-inner);font-size:14px;max-inline-size:440px}
+  dialog{background:var(--surface);color:var(--text);border:1px solid var(--border);
+    border-radius:var(--r-card);padding:24px;inline-size:min(400px,calc(100vw - 48px))}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  dialog h3{margin:0 0 8px;font-size:17px;text-wrap:balance}
+  dialog p{margin:0 0 16px;font-size:14px;line-height:1.5;color:var(--secondary);text-wrap:pretty}
+  dialog input{margin-block-end:16px}
+
+  @media (max-width:360px){
+    .qrbox{flex-direction:column;align-items:flex-start}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{transition:none !important;animation:none !important}
+  }
+  @media (hover:hover){
+    .chip:hover{border-color:var(--volt)}
+    .btn-volt:hover{filter:brightness(1.06)}
+    .btn-line:hover,.pinrow button:hover{border-color:rgba(255,255,255,.2)}
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <div class="brand">
+      <span class="dot idle" id="dot" aria-hidden="true"></span>
+      <div>
+        <h1>shutlite</h1>
+        <p class="sub" id="sub">desligue o PC sem sair da cama</p>
+      </div>
+    </div>
+    <span class="pill" id="pill" role="status">Conectando…</span>
+  </header>
+
+  <section class="card hero" id="hero" aria-labelledby="t-hero">
+    <h2 id="t-hero">Contagem regressiva</h2>
+    <svg class="ring" viewBox="0 0 200 200" role="img" aria-labelledby="clock clockCap">
+      <circle class="track" cx="100" cy="100" r="84" fill="none" stroke-width="12"/>
+      <circle class="bar" id="ringBar" cx="100" cy="100" r="84" fill="none" stroke-width="12"
+        stroke-dasharray="527.8" stroke-dashoffset="527.8" transform="rotate(-90 100 100)"/>
+      <text x="100" y="104" text-anchor="middle" id="clock">--:--</text>
+      <text class="cap" x="100" y="128" text-anchor="middle" id="clockCap">PARADO</text>
+    </svg>
+    <p id="actionLabel">Nada agendado.</p>
+    <div class="hero-actions" id="heroActions" hidden>
+      <button class="btn btn-line" id="btnExtend">+ 10 min</button>
+      <button class="btn btn-danger" id="btnCancel">Cancelar</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="t-sched">
+    <h2 id="t-sched">Agendar</h2>
+    <div class="seg" role="group" aria-label="O que fazer no fim da contagem">
+      <button data-mode="shutdown" aria-pressed="true">Desligar</button>
+      <button data-mode="restart" aria-pressed="false">Reiniciar</button>
+    </div>
+
+    <span class="lbl" id="l-chips">Daqui a — um toque agenda</span>
+    <div class="chips" role="group" aria-labelledby="l-chips">
+      <button class="chip" data-min="15">15<small>min</small></button>
+      <button class="chip" data-min="30">30<small>min</small></button>
+      <button class="chip" data-min="60">1<small>hora</small></button>
+      <button class="chip" data-min="120">2<small>horas</small></button>
+    </div>
+
+    <label for="mins">Outro tempo, em minutos (1 a 1440)</label>
+    <input type="range" id="slider" min="5" max="240" step="5" value="45" aria-label="Minutos, de 5 a 240">
+    <div class="row">
+      <input class="narrow" type="number" id="mins" value="45" min="1" max="1440" inputmode="numeric">
+      <button class="btn btn-line" id="btnCustom">Agendar 45 min</button>
+    </div>
+
+    <hr class="split">
+
+    <label for="at">Num horário exato</label>
+    <div class="row">
+      <input class="narrow" type="time" id="at" value="23:30" style="inline-size:128px">
+      <button class="btn btn-line" id="btnAt">Agendar às 23:30</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="t-now">
+    <h2 id="t-now">Agora</h2>
+    <div class="row">
+      <button class="btn btn-volt" id="btnNow">Desligar agora</button>
+      <button class="btn btn-line" id="btnRestart">Reiniciar agora</button>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="t-conn">
+    <h2 id="t-conn">Acesso</h2>
+
+    <div id="accessLocal" hidden>
+      <div class="qrbox">
+        <div id="qr" role="img" aria-label="QR code para abrir o painel no celular">carregando…</div>
+        <div class="qrmeta">
+          <strong>Aponte a câmera do celular</strong>
+          O código já leva o PIN: abre pronto para usar.
+          <span id="qrurl">—</span>
+        </div>
+      </div>
+      <div class="pinrow">
+        <span class="lbl">PIN</span>
+        <code id="pinShow">••••••</code>
+        <button id="btnReveal" aria-pressed="false">Mostrar</button>
+      </div>
+    </div>
+
+    <div id="accessRemote" hidden>
+      <p class="hint">O PIN aparece no painel aberto no próprio PC. Ou escaneie o QR de lá e ele entra sozinho.</p>
+      <label for="pin">PIN deste PC</label>
+      <div class="row">
+        <input type="password" id="pin" inputmode="numeric" autocomplete="off" placeholder="6 dígitos">
+        <button class="btn btn-line fit" id="btnPin">Salvar</button>
+      </div>
+      <p class="saved" id="pinSaved"></p>
+    </div>
+  </section>
+
+  <footer>Funciona só na sua rede local.<br>Desligar aqui é <strong>shutdown de verdade</strong>, não logoff.</footer>
+</main>
+
+<dialog id="dlg" aria-labelledby="dlgT">
+  <h3 id="dlgT"></h3>
+  <p id="dlgP"></p>
+  <div class="row">
+    <button class="btn btn-line" id="dlgBack">Voltar</button>
+    <button class="btn btn-volt" id="dlgGo"></button>
+  </div>
+</dialog>
+
+<dialog id="pinDlg" aria-labelledby="pinDlgT">
+  <form id="pinForm">
+    <h3 id="pinDlgT">Qual é o PIN?</h3>
+    <p>Ele aparece no painel aberto no próprio PC. Fica salvo neste aparelho.</p>
+    <label for="pinIn" class="sr">PIN</label>
+    <input type="password" id="pinIn" inputmode="numeric" autocomplete="off" placeholder="PIN">
+    <div class="row">
+      <button type="button" class="btn btn-line" id="pinCancel">Voltar</button>
+      <button type="submit" class="btn btn-volt">Continuar</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" aria-hidden="true"><span id="toastMsg"></span></div>
+<div id="live" class="sr" role="status" aria-live="polite"></div>
+
+<script src="/qrcode.min.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const CIRC = 527.8, MAX_S = 86400, PIN_KEY = "shutlite-pin";
+const WORDS = {
+  shutdown: {verb: "Desliga", noun: "Desligamento", pill: "Agendado", cap: "DESLIGA EM"},
+  restart:  {verb: "Reinicia", noun: "Reinício", pill: "Reinício agendado", cap: "REINICIA EM"},
+};
+
+// localStorage pode estar bloqueado (aba anônima): o painel segue funcionando
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch(e){} },
+  del(k){ try { localStorage.removeItem(k); } catch(e){} },
+};
+
+let pin = store.get(PIN_KEY) || "";
+let isLocal = false, online = null, scheduled = false;
+let mode = "shutdown";
+let total = 0, rev = -1, deadline = 0, curAction = null, localTimer = null;
+
+// pareamento: o QR do PC abre .../#pin=XXXXXX; o fragmento nunca vai ao servidor
+let justPaired = false;
+{
+  const m = location.hash.match(/^#pin=([^&]+)/);
+  if (m){
+    setPin(decodeURIComponent(m[1]));
+    history.replaceState(null, "", location.pathname);
+    justPaired = true;
+  }
+}
+
+function setPin(v){
+  pin = v;
+  if (v) store.set(PIN_KEY, v); else store.del(PIN_KEY);
+  $("pin").value = v;
+  $("pinSaved").textContent = v ? "PIN salvo neste aparelho." : "";
+}
+
+let toastT = null;
+function toast(msg){
+  const bar = $("toast");
+  $("toastMsg").textContent = msg;
+  $("live").textContent = msg;
+  bar.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(() => bar.classList.remove("show"), 3200);
+}
+
+// ---------------------------------------------------------------- diálogos
+function confirmDlg(title, text, go){
+  return new Promise((resolve) => {
+    const d = $("dlg");
+    $("dlgT").textContent = title; $("dlgP").textContent = text; $("dlgGo").textContent = go;
+    d.returnValue = "";
+    d.addEventListener("close", () => resolve(d.returnValue === "ok"), {once: true});
+    d.showModal(); $("dlgBack").focus();
+  });
+}
+$("dlgBack").addEventListener("click", () => $("dlg").close("back"));
+$("dlgGo").addEventListener("click", () => $("dlg").close("ok"));
+
+function askPin(){
+  return new Promise((resolve) => {
+    const d = $("pinDlg");
+    $("pinIn").value = "";
+    d.returnValue = "";
+    d.addEventListener("close", () => resolve(d.returnValue === "ok"), {once: true});
+    d.showModal(); $("pinIn").focus();
+  });
+}
+$("pinCancel").addEventListener("click", () => $("pinDlg").close("back"));
+$("pinForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const v = $("pinIn").value.trim();
+  if (v.length < 4){ toast("PIN curto demais. São ao menos 4 dígitos."); $("pinIn").focus(); return; }
+  setPin(v);
+  $("pinDlg").close("ok");
+});
+async function ensurePin(){ return pin ? true : askPin(); }
+
+// ---------------------------------------------------------------- API
+async function api(path, body = {}){
+  body.pin = pin;
+  let r;
+  try {
+    r = await fetch(path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
+  } catch(e){ setOnline(false); toast("Sem conexão com o PC. Confira o Wi-Fi."); return null; }
+  if (r.ok) return r.json();
+  let msg = "Não foi possível concluir. Tente de novo.";
+  try { msg = (await r.json()).error || msg; } catch(e){}
+  if (r.status === 401){
+    if (!isLocal) setPin("");  // esquece o PIN errado: a próxima ação pede de novo
+    msg = "PIN incorreto. Toque de novo para digitar o PIN certo.";
+  }
+  toast(msg);
+  return null;
+}
+
+// ---------------------------------------------------------------- relógio
+function fmt(s){
+  s = Math.max(0, s | 0);
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60;
+  const p = (n) => String(n).padStart(2, "0");
+  return h > 0 ? `${p(h)}:${p(m)}:${p(x)}` : `${p(m)}:${p(x)}`;
+}
+function human(min){
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60), m = min % 60;
+  return m ? `${h} h ${m} min` : `${h} h`;
+}
+function clockTime(ms){
+  const d = new Date(ms);
+  const t = d.toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"});
+  return d.getDate() === new Date().getDate() ? t : `${t} de amanhã`;
+}
+function secondsUntil(hhmm){
+  const [hh, mm] = hhmm.split(":").map(Number);
+  const d = new Date(); d.setHours(hh, mm, 0, 0);
+  if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1);
+  return Math.round((d.getTime() - Date.now()) / 1000);
+}
+
+// relógio local: redesenha a cada 500ms a partir do deadline, sem esperar
+// o servidor. Cada snapshot re-ancora o deadline (corrige deriva).
+function renderLocal(){
+  const left = Math.max(0, Math.round((deadline - Date.now()) / 1000));
+  $("clock").textContent = fmt(left);
+  document.title = `${fmt(left)} · shutlite`;
+  const frac = total > 0 ? Math.min(1, left / total) : 0;
+  $("ringBar").style.strokeDashoffset = String(CIRC * (1 - frac));
+  $("btnExtend").disabled = left + 600 > MAX_S;
+  if (left <= 0){ stopLocal(); tick(); }  // zerou: busca o estado final
+}
+function startLocal(){ if (!localTimer) localTimer = setInterval(renderLocal, 500); }
+function stopLocal(){ if (localTimer){ clearInterval(localTimer); localTimer = null; } }
+
+function paintPill(){
+  const pill = $("pill"), w = WORDS[curAction] || WORDS.shutdown;
+  pill.classList.toggle("on", online !== false && scheduled);
+  pill.classList.toggle("off", online === false);
+  $("dot").classList.toggle("idle", online === false || !scheduled);
+  pill.textContent = online === false ? "Sem conexão" : online === null ? "Conectando…" : scheduled ? w.pill : "Ocioso";
+}
+function setOnline(v){ if (online !== v){ online = v; paintPill(); } }
+
+function showScheduled(action, note){
+  const w = WORDS[action] || WORDS.shutdown;
+  scheduled = true; curAction = action;
+  $("clockCap").textContent = w.cap;
+  $("actionLabel").innerHTML = note || `${w.verb} às <strong>${clockTime(deadline)}</strong>`;
+  $("heroActions").hidden = false;
+  $("hero").classList.add("live");
+  startLocal(); renderLocal(); paintPill();
+}
+function showIdle(){
+  stopLocal();
+  scheduled = false; total = 0; deadline = 0; curAction = null;
+  $("clock").textContent = "--:--"; $("clockCap").textContent = "PARADO";
+  $("ringBar").style.strokeDashoffset = String(CIRC);
+  $("actionLabel").textContent = "Nada agendado.";
+  $("heroActions").hidden = true;
+  $("hero").classList.remove("live");
+  document.title = "shutlite";
+  paintPill();
+}
+// pintura otimista: resposta na hora, o servidor confirma em seguida
+function optimistic(seconds, action){
+  total = seconds; deadline = Date.now() + seconds * 1000;
+  showScheduled(action, "Enviando…");
+}
+function paint(st){
+  if (!st) return;
+  if (typeof st.rev === "number") rev = st.rev;
+  if (st.scheduled){
+    total = st.total || Math.max(total, st.left);
+    deadline = Date.now() + st.left * 1000;
+    showScheduled(st.action);
+  } else showIdle();
+}
+
+async function tick(){
+  try {
+    const r = await fetch("/api/status", {cache: "no-store"});
+    if (!r.ok) throw new Error(String(r.status));
+    setOnline(true);
+    paint(await r.json());
+  } catch(e){ setOnline(false); }
+}
+
+// ---------------------------------------------------------------- ações
+async function schedule(seconds, action, path, body, done){
+  if (!await ensurePin()) return;
+  optimistic(seconds, action);
+  const st = await api(path, body);
+  if (st){ paint(st); toast(done(st)); }
+  else tick();  // falhou: volta ao estado real
+}
+function scheduleIn(seconds){
+  const w = WORDS[mode];
+  return schedule(seconds, mode, "/api/" + mode, {seconds},
+    (st) => `${w.noun} em ${fmt(st.left)}. Dá para cancelar a qualquer momento.`);
+}
+
+document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
+  mode = b.dataset.mode;
+  document.querySelectorAll(".seg button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+}));
+
+document.querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => {
+  scheduleIn(parseInt(c.dataset.min, 10) * 60);
+}));
+
+function readMins(){
+  const v = parseInt($("mins").value, 10);
+  return v >= 1 && v <= 1440 ? v : 0;
+}
+function syncCustom(){
+  const v = readMins();
+  $("btnCustom").textContent = v ? `Agendar ${human(v)}` : "Agendar";
+}
+$("slider").addEventListener("input", (e) => { $("mins").value = e.target.value; syncCustom(); });
+$("mins").addEventListener("input", () => {
+  const v = readMins();
+  if (v) $("slider").value = String(Math.min(240, Math.max(5, v)));
+  syncCustom();
+});
+$("btnCustom").addEventListener("click", () => {
+  const v = readMins();
+  if (!v){ toast("Digite os minutos, de 1 a 1440. Ex.: 45."); $("mins").focus(); return; }
+  scheduleIn(v * 60);
+});
+
+$("at").addEventListener("input", (e) => {
+  $("btnAt").textContent = e.target.value ? `Agendar às ${e.target.value}` : "Agendar";
+});
+$("btnAt").addEventListener("click", () => {
+  const v = $("at").value;
+  if (!v || !v.includes(":")){ toast("Escolha o horário. Ex.: 23:30."); $("at").focus(); return; }
+  schedule(secondsUntil(v), mode, "/api/at", {at: v, action: mode},
+    () => `${WORDS[mode].noun} agendado para ${v}.`);
+});
+
+$("btnNow").addEventListener("click", async () => {
+  if (!await ensurePin()) return;
+  if (!await confirmDlg("Desligar agora?", "O PC desliga em 5 segundos. Trabalho não salvo pode ser perdido.", "Desligar")) return;
+  schedule(5, "shutdown", "/api/shutdown", {seconds: 5}, () => "Desligando em 5 segundos.");
+});
+$("btnRestart").addEventListener("click", async () => {
+  if (!await ensurePin()) return;
+  if (!await confirmDlg("Reiniciar agora?", "O PC reinicia em 5 segundos. Trabalho não salvo pode ser perdido.", "Reiniciar")) return;
+  schedule(5, "restart", "/api/restart", {seconds: 5}, () => "Reiniciando em 5 segundos.");
+});
+
+$("btnExtend").addEventListener("click", () => {
+  if (!scheduled) return;
+  const action = curAction || "shutdown";
+  const seconds = Math.min(MAX_S, Math.round((deadline - Date.now()) / 1000) + 600);
+  schedule(seconds, action, "/api/" + action, {seconds}, () => "Adiado em 10 minutos.");
+});
+$("btnCancel").addEventListener("click", async () => {
+  if (!await ensurePin()) return;
+  showIdle();  // otimista: apaga na hora
+  const st = await api("/api/cancel");
+  if (st){ paint(st); toast("Cancelado. O PC continua ligado."); }
+  else tick();
+});
+
+// ---------------------------------------------------------------- acesso
+$("btnPin").addEventListener("click", () => {
+  const v = $("pin").value.trim();
+  if (v.length < 4){ toast("PIN curto demais. São ao menos 4 dígitos."); $("pin").focus(); return; }
+  setPin(v);
+  toast("PIN salvo neste aparelho.");
+});
+$("btnReveal").addEventListener("click", (e) => {
+  const show = e.currentTarget.getAttribute("aria-pressed") !== "true";
+  e.currentTarget.setAttribute("aria-pressed", String(show));
+  e.currentTarget.textContent = show ? "Ocultar" : "Mostrar";
+  $("pinShow").textContent = show ? pin : "•".repeat(pin.length || 6);
+});
+
+async function boot(){
+  let info = null;
+  try {
+    const r = await fetch("/api/info", {cache: "no-store"});
+    if (r.ok) info = await r.json();
+  } catch(e){}
+  if (info && info.dry_run) $("sub").textContent = "modo simulação · nada desliga de verdade";
+  isLocal = !!(info && info.local && info.pin);
+  if (!isLocal){
+    $("accessRemote").hidden = false;
+    $("pin").value = pin;
+    $("pinSaved").textContent = pin ? "PIN salvo neste aparelho." : "";
+    if (justPaired) toast("Celular pareado. Já pode usar.");
+    return;
+  }
+  pin = info.pin;  // no próprio PC o PIN vem do servidor, sem digitar
+  $("accessLocal").hidden = false;
+  $("pinShow").textContent = "•".repeat(pin.length);
+  const target = info.urls[1] || info.urls[0];  // [0] é localhost
+  $("qrurl").textContent = target.replace(/^http:\/\//, "");
+  const box = $("qr"); box.textContent = "";
+  try {
+    new QRCode(box, {text: `${target}/#pin=${encodeURIComponent(pin)}`, width: 140, height: 140,
+      colorDark: "#111111", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M});
+  } catch(e){ box.textContent = "QR indisponível. Digite o endereço ao lado no celular."; }
+}
+
+// tempo real: o servidor empurra cada mudança via /api/events (SSE).
+// polling é reserva: 1s até o stream abrir ou se cair, 5s só de reconcile.
+let poller = null;
+function setPoll(ms){
+  if (poller) clearInterval(poller);
+  poller = setInterval(tick, ms);
+}
+function connect(){
+  setPoll(1000);
+  if (!("EventSource" in window)) return;
+  let es;
+  try { es = new EventSource("/api/events"); } catch(e){ return; }
+  es.onopen = () => { setOnline(true); setPoll(5000); };
+  es.onmessage = (e) => { try { paint(JSON.parse(e.data)); } catch(err){} };
+  es.onerror = () => setPoll(1000);
+}
+syncCustom(); tick(); boot(); connect();
+</script>
+</body>
+</html>

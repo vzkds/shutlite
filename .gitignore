@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# dados locais: PIN, estado e log nunca vão para o repositório
+config.json
+state.json
+*.log
+
+.claude/
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
