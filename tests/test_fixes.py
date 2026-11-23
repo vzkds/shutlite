@@ -1963,8 +1963,10 @@ class OrderlyStopTests(_SilentBase):
             finally:
                 st._op.release()
         self.assertEqual((info["ok"], info["reason"]), (False, "busy"))
+        self.assertRegex(info["at"], r"^\d\d:\d\d$")
         self.assertEqual(self.run.calls, [])
-        self.assertIn("NÃO vai acontecer", cm.output[0])
+        self.assertIn("PODE acontecer", cm.output[0])
+        self.assertNotIn("NÃO vai acontecer", cm.output[0])  # quem segura o _op pode estar entregando
 
     def test_server_close_hands_off_pending_local_countdown(self):
         run = Scripted()
@@ -2307,7 +2309,8 @@ class StopCoverageTests(_SilentBase):
         t_b.join(5)
         self.assertEqual(calls, [("restart", 500)], "uma entrega só, mesmo com duas paradas")
         self.assertTrue(out["a"]["ok"])
-        self.assertIsNone(out["b"], "quem esperou vê que já foi entregue e não entrega de novo")
+        # quem esperou vê que já foi entregue: não entrega de novo, mas avisa que o desligamento vai acontecer
+        self.assertEqual((out["b"]["ok"], out["b"]["action"]), (True, "restart"))
 
     def test_api_quit_then_server_close_delivers_once(self):  # (iv) sequencial
         run = Scripted()
@@ -2321,10 +2324,8 @@ class StopCoverageTests(_SilentBase):
         srv.server_close()  # o main() faz isso no finally: não pode entregar de novo
         self.assertEqual(run.calls, [("restart", 600)])
 
-    @unittest.expectedFailure
-    def test_busy_stop_message_is_wrong_when_inflight_handoff_succeeds(self):
-        # BUG (não corrigido, relatado): a parada dá "busy" e a mensagem diz "NÃO vai acontecer", mas o
-        # tick que já estava dentro do _op entrega com sucesso logo depois. Quem parou fica com um aviso falso.
+    def _tick_blocked_in_handoff(self):
+        """Agenda, chega ao último minuto e deixa o tick preso dentro do shutdown.exe (segurando o _op)."""
         entered, release = threading.Event(), threading.Event()
         calls = []
 
@@ -2341,14 +2342,70 @@ class StopCoverageTests(_SilentBase):
         t_tick = threading.Thread(target=st.tick)
         t_tick.start()
         self.assertTrue(entered.wait(5))
-        with mock.patch.object(server, "STOP_WAIT_SECONDS", 0.05):
-            info = st.stop()  # o _op está ocupado pelo tick: "busy"
+        self.addCleanup(t_tick.join, 5)
+        self.addCleanup(release.set)
+        return st, calls, release, t_tick
+
+    def test_busy_stop_never_says_it_will_not_happen_when_inflight_handoff_succeeds(self):
+        # antes: a parada dizia "NÃO vai acontecer" e o tick em andamento entregava logo depois
+        st, calls, release, t_tick = self._tick_blocked_in_handoff()
+        with mock.patch.object(server, "STOP_WAIT_SECONDS", 0.05), self.assertLogs("shutlite", "ERROR") as cm:
+            info = st.stop()  # o _op está ocupado pelo tick: não dá para confirmar
         release.set()
         t_tick.join(5)
         self.assertEqual(calls, [("shutdown", 55)])
         self.assertIs(self.saved()["handoff"], True, "a entrega do tick foi bem-sucedida")
-        self.assertFalse(info.get("reason") == "busy" and self.saved()["handoff"] is True,
-                         "a parada disse 'NÃO vai acontecer' enquanto o Windows já tem o timer")
+        self.assertEqual((info["ok"], info["reason"]), (False, "busy"))
+        self.assertIn("PODE acontecer", cm.output[0])
+        self.assertNotIn("NÃO vai acontecer", cm.output[0])
+
+    def test_stop_reports_delivery_when_inflight_handoff_finishes_while_waiting(self):
+        st, calls, release, t_tick = self._tick_blocked_in_handoff()
+        threading.Timer(0.1, release.set).start()  # o shutdown.exe responde enquanto a parada espera
+        with self.assertLogs("shutlite", "WARNING") as cm:
+            info = st.stop()
+        t_tick.join(5)
+        self.assertEqual(calls, [("shutdown", 55)])  # entregue uma vez só, pelo tick
+        self.assertIs(info["ok"], True)
+        self.assertRegex(info["at"], r"^\d\d:\d\d$")
+        self.assertTrue(any("já foi entregue ao Windows" in line for line in cm.output))
+
+    def test_busy_stop_reports_delivery_if_handoff_already_marked(self):
+        # o tick já marcou a entrega mas ainda segura o _op (avisando as páginas): é "vai acontecer"
+        st = self.make()
+        st.schedule(600, "shutdown")
+        st._op.acquire()
+
+        def mark():
+            with st._lock:
+                st._handoff = True
+        threading.Timer(0.05, mark).start()  # durante a espera da parada, com o _op ainda ocupado
+        try:
+            with mock.patch.object(server, "STOP_WAIT_SECONDS", 0.5), self.assertLogs("shutlite", "WARNING"):
+                info = st.stop()
+        finally:
+            st._op.release()
+        self.assertEqual((info["ok"], info.get("reason")), (True, None))
+        self.assertEqual(self.run.calls, [])
+
+    def test_stop_command_busy_says_it_may_happen(self):
+        run = Scripted()
+        srv = serve_quiet(self, self.dir, run)
+        port = srv.server_address[1]
+        http_json(port, "POST", "/api/shutdown", {"pin": "482913", "seconds": 600})
+        cfg = server.Config(port=port, pin="482913", data_dir=self.dir, bind="127.0.0.1")
+        buf = io.StringIO()
+        srv.state._op.acquire()  # um comando ao Windows em andamento
+        try:
+            with mock.patch.object(server, "STOP_WAIT_SECONDS", 0.05), contextlib.redirect_stdout(buf),                     self.assertLogs("shutlite", "ERROR"):
+                code = server.stop_running(cfg)
+        finally:
+            srv.state._op.release()
+        out = buf.getvalue()
+        self.assertEqual(code, 0)
+        self.assertIn("PODE acontecer", out)
+        self.assertIn("shutdown /a", out)
+        self.assertNotIn("NÃO consegui entregá-lo", out)
 
 
 class ReadBoundTests(_SilentBase):

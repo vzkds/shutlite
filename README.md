@@ -100,7 +100,10 @@ Parar o shutlite de forma ordenada (`python server.py --stop`, Ctrl+C na janela
 dele, ou o botão de parar do painel) com um desligamento pendente **entrega o que
 falta ao Windows** antes de fechar, e avisa: "Há um desligamento às HH:MM; entreguei
 ao Windows (o aviso dele vai aparecer)." Se a entrega falhar, o aviso diz que o
-desligamento **não** vai acontecer. Isso não vale quando o shutlite é encerrado por
+desligamento **não** vai acontecer. Se outro comando ao Windows ainda estiver em
+andamento na hora de parar (o `shutdown.exe` demorou a responder), o shutlite não
+tem como confirmar a entrega: o aviso diz que o desligamento **pode** acontecer e
+que `shutdown /a` garante que não aconteça. Isso não vale quando o shutlite é encerrado por
 fora: matar o processo (Gerenciador de Tarefas, `taskkill`), fazer logoff ou desligar
 o PC, ou um antivírus que o feche. Nesses casos nada é entregue ao Windows, a
 contagem só no shutlite para em silêncio e o PC não desliga (a contagem fica salva:

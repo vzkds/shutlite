@@ -481,17 +481,33 @@ class ShutdownState:
         if not pending:
             return None
         if not self._op.acquire(timeout=STOP_WAIT_SECONDS):
-            LOG.error("há um desligamento agendado, mas um comando estava em andamento e não consegui "
-                      "entregá-lo ao Windows; sem o shutlite rodando ele NÃO vai acontecer")
-            return {"ok": False, "reason": "busy"}
+            # Outro comando ao Windows segura o _op. Pode ser o próprio tick entregando este agendamento
+            # (o shutdown.exe demorou): então NÃO dá para afirmar que ele não vai acontecer.
+            with self._lock:
+                at, action, handoff = self._at, self._action, self._handoff
+            if at is None or action is None:
+                return None  # cancelado enquanto esperávamos
+            when = time.strftime("%H:%M", time.localtime(at))
+            if handoff:  # o comando em andamento era a entrega, e ela já deu certo
+                LOG.warning("Há um desligamento às %s; já foi entregue ao Windows (o aviso dele vai "
+                            "aparecer).", when)
+                return {"ok": True, "action": action, "at": when}
+            LOG.error("Há um desligamento às %s, mas um comando ao Windows ainda estava em andamento e não "
+                      "consegui confirmar a entrega. Ele PODE acontecer; para garantir que não aconteça, "
+                      "rode: shutdown /a", when)
+            return {"ok": False, "reason": "busy", "action": action, "at": when}
         info: dict | None = None
         try:
             with self._lock:
                 at, mono, action, handoff = self._at, self._mono, self._action, self._handoff
-            if at is None or mono is None or handoff or action is None:
-                return None  # cancelado ou entregue enquanto esperávamos
-            wall_left, mono_left, jumped = self._left(at, mono)
+            if at is None or mono is None or action is None:
+                return None  # cancelado enquanto esperávamos
             when = time.strftime("%H:%M", time.localtime(at))
+            if handoff:  # o tick entregou enquanto esperávamos: quem parou precisa saber que vai acontecer
+                LOG.warning("Há um desligamento às %s; já foi entregue ao Windows (o aviso dele vai "
+                            "aparecer).", when)
+                return {"ok": True, "action": action, "at": when}
+            wall_left, mono_left, jumped = self._left(at, mono)
             if jumped:  # relógio mudou ou PC suspenso: o prazo não é confiável; não arrisca desligar errado
                 LOG.error("há um desligamento às %s, mas o relógio do sistema mudou; NÃO entreguei ao "
                           "Windows e ele NÃO vai acontecer", when)
@@ -1272,6 +1288,10 @@ def stop_running(cfg: Config) -> int:
         at = _printable(str(handoff["at"]), 20) if handoff.get("at") else ""
         if handoff.get("ok"):
             print(f"Há um desligamento às {at}; entreguei ao Windows (o aviso dele vai aparecer).")
+        elif handoff.get("reason") == "busy":  # não dá para saber: nunca afirmar que não vai acontecer
+            print("ATENÇÃO: há um desligamento agendado" + (f" às {at}" if at else "")
+                  + " e um comando ao Windows ainda estava em andamento; não consegui confirmar a entrega."
+                  " Ele PODE acontecer. Para garantir que não aconteça, rode: shutdown /a")
         else:
             print("ATENÇÃO: havia um desligamento agendado" + (f" às {at}" if at else "")
                   + ", mas NÃO consegui entregá-lo ao Windows; sem o shutlite rodando ele NÃO vai acontecer.")
