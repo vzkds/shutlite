@@ -1729,6 +1729,7 @@ class ClassicRegressionTests(_SilentBase):
 
 # -- 8) autostart: o .cmd não repassa opções; o README explica como mudar
 
+@unittest.skipUnless(os.name == "nt", "o atalho de inicialização usa caminhos do Windows")
 class AutostartTests(_SilentBase):
     def setUp(self):
         super().setUp()

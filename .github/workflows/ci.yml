@@ -14,11 +14,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
-        python: ["3.9", "3.13"]
+        include:
+          # Windows é onde o shutlite roda: versão mínima suportada e a mais nova
+          - { os: windows-latest, python: "3.9" }
+          - { os: windows-latest, python: "3.13" }
+          # Ubuntu garante que os testes não dependem do Windows
+          - { os: ubuntu-latest, python: "3.13" }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
       - name: Testes
