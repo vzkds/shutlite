@@ -3,253 +3,501 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#0b0d10">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0d10'/%3E%3Ccircle cx='16' cy='16' r='7' fill='%23c8ff3d'/%3E%3C/svg%3E">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F2F1EE" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B0B0C" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Cstyle%3E.i%7Bfill:none;stroke:%23101014%7D.w%7Bfill:none;stroke:%23101014%7D%40media%20(prefers-color-scheme:dark)%7B.i,.w%7Bstroke:%23F2F1EE%7D%7D%3C/style%3E%3Cpath%20class='i'%20stroke-width='3.2'%20d='M27.53%2012.25%20A12.12%2012.12%200%201%201%2021.69%205.30'/%3E%3Ccircle%20class='i'%20stroke-width='3'%20cx='16'%20cy='16'%20r='6.65'/%3E%3Crect%20x='23.175'%20y='5.975'%20width='4.2'%20height='4.2'%20fill='%234E7BFB'/%3E%3C/svg%3E">
 <title>shutlite</title>
-<style>
-  :root{
-    --bg:#0b0d10; --surface:#14171c; --surface-2:#1a1f26; --inset:#0e1116;
-    --border:rgba(255,255,255,.09); --border-soft:rgba(255,255,255,.06);
-    --text:#f2f4f0; --secondary:#c3cbc2; --muted:#a7b0a5;
-    --volt:#c8ff3d; --volt-ink:#10130a; --danger:#ff8585; --danger-bg:#2a1518;
-    --ring-track:#262c33; --toast:#22282f;
-    --r-card:20px; --r-inner:12px; --r-nested:8px; --pad-card:20px;
-    --font:system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+<script>
+/* tema escolhido antes da primeira pintura (sem piscar claro no escuro); color-scheme e theme-color acompanham */
+try {
+  var t = localStorage.getItem("shutlite-theme");
+  if (t === "light" || t === "dark") {
+    document.documentElement.dataset.theme = t;
+    document.querySelector('meta[name="color-scheme"]').content = t;
+    document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){ m.removeAttribute("media"); m.content = t === "dark" ? "#0B0B0C" : "#F2F1EE"; });
   }
-  *{box-sizing:border-box}
+} catch(e) {}
+</script>
+<style>
+  /* ============ tokens — claro (padrão) ============ */
+  :root{
+    color-scheme:light;
+    --bg:#F2F1EE; --surface:#F8F7F4; --surface-2:#E8E7E3; --inset:#FFFFFF;
+    --line:#C9C8C4;            /* divisórias decorativas */
+    --border:#686767;          /* borda de controle (≥4,5:1) */
+    --text:#101014; --secondary:#46464A; --muted:#5E5E62;
+    --btn:#101014; --on-btn:#F2F1EE;
+    --accent:#2F5BE0; --on-accent:#FFFFFF; --logo-sq:#2F5BE0;
+    --danger:#B3261E;
+    --orbit:#B4B3AF; --orbit-strong:#101014;
+    --toast:#101014; --on-toast:#F2F1EE; --dot-idle:#686767;
+    --qr-bg:#fff; --qr-ink:#111; --qr-muted:#555;
+    --backdrop:rgba(16,16,20,.5);
+    --r:0;
+    --font:system-ui,-apple-system,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+    --mono:ui-monospace,"Cascadia Mono","Geist Mono",Consolas,"SF Mono",Menlo,monospace;
+    --bar-h:48px;
+  }
+  /* ============ tokens — escuro ============ */
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme=light]){
+      color-scheme:dark;
+      --bg:#0B0B0C; --surface:#131315; --surface-2:#1B1B1E; --inset:#0B0B0C;
+      --line:#2A2A2E; --border:#8A8A90;
+      --text:#F2F1EE; --secondary:#C2C2C4; --muted:#9C9C9F;
+      --btn:#F2F1EE; --on-btn:#0B0B0C;
+      --accent:#7C9CFF; --on-accent:#0B0B0C; --logo-sq:#4E7BFB;
+      --danger:#FF8A84;
+      --orbit:#3A3A3F; --orbit-strong:#F2F1EE;
+      --toast:#F2F1EE; --on-toast:#0B0B0C; --dot-idle:#8A8A90;
+      --backdrop:rgba(0,0,0,.65);
+    }
+  }
+  :root[data-theme=dark]{
+    color-scheme:dark;
+    --bg:#0B0B0C; --surface:#131315; --surface-2:#1B1B1E; --inset:#0B0B0C;
+    --line:#2A2A2E; --border:#8A8A90;
+    --text:#F2F1EE; --secondary:#C2C2C4; --muted:#9C9C9F;
+    --btn:#F2F1EE; --on-btn:#0B0B0C;
+    --accent:#7C9CFF; --on-accent:#0B0B0C; --logo-sq:#4E7BFB;
+    --danger:#FF8A84;
+    --orbit:#3A3A3F; --orbit-strong:#F2F1EE;
+    --toast:#F2F1EE; --on-toast:#0B0B0C; --dot-idle:#8A8A90;
+    --backdrop:rgba(0,0,0,.65);
+  }
+
+  *{box-sizing:border-box;border-radius:0}
   [hidden]{display:none !important}
-  html{-webkit-font-smoothing:antialiased}
-  body{margin:0;background:radial-gradient(1200px 600px at 50% -10%,#18202a 0%,var(--bg) 55%) fixed,var(--bg);
-    color:var(--text);font-family:var(--font);min-block-size:100vh;
-    display:flex;justify-content:center;padding:0 0 calc(32px + env(safe-area-inset-bottom))}
-  .wrap{inline-size:100%;max-inline-size:460px;padding:20px 16px 0}
-  .sr{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  html{-webkit-font-smoothing:antialiased;background:var(--bg)}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);
+    min-block-size:100vh;min-block-size:100dvh}
+  .sr{position:absolute;inset-block-start:0;inset-inline-start:0;inline-size:1px;block-size:1px;overflow:hidden;clip:rect(0 0 0 0)}
 
-  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-block:4px 16px}
-  .brand{display:flex;align-items:center;gap:10px;min-inline-size:0}
-  .dot{flex:none;inline-size:12px;block-size:12px;border-radius:50%;background:var(--volt);box-shadow:0 0 12px var(--volt)}
-  .dot.idle{background:#5b6360;box-shadow:none}
-  h1{font-size:20px;line-height:1.2;margin:0;letter-spacing:-.01em}
-  .sub{font-size:12.5px;color:var(--muted);margin:2px 0 0}
-  .pill{font-size:12px;font-weight:600;padding:8px 12px;border-radius:999px;border:1px solid var(--border);
-    background:var(--surface);color:var(--secondary);white-space:nowrap}
-  .pill.on{color:var(--volt-ink);background:var(--volt);border-color:transparent}
-  .pill.off{color:var(--danger);border-color:rgba(255,133,133,.35)}
-
-  .card{background:var(--surface);border:1px solid var(--border-soft);border-radius:var(--r-card);
-    padding:var(--pad-card);margin-block-end:16px}
-  .card h2{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  /* tipografia: título largo e pesado, rótulos em mono maiúsculo */
+  h1,h2,h3{margin:0}
+  .eyebrow,.card h2,label,.lbl{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--muted)}
+  label,.lbl{display:block;margin:0 0 8px}
   .hint{font-size:13px;line-height:1.5;color:var(--secondary);margin:0 0 12px;text-wrap:pretty}
-  .split{border:0;border-block-start:1px solid var(--border-soft);margin:20px 0 16px}
+
+  /* ============ barra superior ============ */
+  .app{display:flex;flex-direction:column;min-block-size:100vh;min-block-size:100dvh}
+  .bar{display:flex;flex-wrap:wrap;align-items:stretch;border-block-end:1px solid var(--line);
+    background:var(--bg);position:relative;z-index:5;padding-inline:env(safe-area-inset-left) env(safe-area-inset-right)}
+  .cell{display:flex;align-items:center;gap:10px;min-block-size:var(--bar-h);padding-inline:16px;
+    border-inline-end:1px solid var(--line);min-inline-size:0}
+  .cell.grow{flex:1;border-inline-end:0}
+  .brand{padding-inline:16px}
+  /* logo inline (Brand/): traço e letras = tinta do tema; só o quadrado leva o azul */
+  .logo-h{margin:0;display:flex}
+  .logo{display:block;block-size:28px;inline-size:auto;aspect-ratio:408/84;overflow:visible}
+  .logo .sym{fill:none;stroke:var(--text);stroke-width:1.75}
+  .logo .word{fill:var(--text)}
+  .logo .sq{fill:var(--logo-sq)}
+  .dot{flex:none;inline-size:8px;block-size:8px;background:var(--accent)}
+  .dot.idle{background:var(--dot-idle)}
+  .pill{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    padding:6px 10px;border:1px solid var(--border);background:transparent;color:var(--secondary);white-space:nowrap}
+  .pill.on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+  .pill.off{color:var(--danger);border-color:var(--danger)}
+  #sub{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+    margin:0;border-inline-end:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ver{font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--muted);border-inline-end:0}
+  .iconbtn{flex:none;inline-size:var(--bar-h);min-block-size:var(--bar-h);padding:0;background:transparent;
+    border:0;border-inline-start:1px solid var(--line);color:var(--text);display:grid;place-items:center}
+  .iconbtn svg{inline-size:18px;block-size:18px}
+  .iconbtn .i-sun{display:none}
+  :root[data-resolved=dark] .iconbtn .i-sun{display:block}
+  :root[data-resolved=dark] .iconbtn .i-moon{display:none}
+
+  /* ============ palco: órbitas + colunas ============ */
+  .stage{flex:1;position:relative;display:flex;flex-direction:column;min-block-size:0}
+  .orbits{position:absolute;inset-inline:0;inset-block-start:0;inline-size:100%;block-size:var(--hero-h);
+    pointer-events:none;z-index:0}
+  .orbits *{fill:none;vector-effect:non-scaling-stroke}
+  .orbits .o{stroke:var(--orbit);stroke-width:1}
+  .orbits .tick{stroke-dasharray:1 18}
+  .orbits .arc{stroke:var(--orbit-strong);stroke-width:2;opacity:.55}
+  .orbits g{transform-origin:500px 500px}
+  body.live .orbits .g1{animation:spin 140s linear infinite}
+  body.live .orbits .g2{animation:spin 200s linear infinite reverse}
+  body.live .orbits .g3{animation:spin 260s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  :root{--hero-h:clamp(400px,100vw,520px)}
+
+  .card{position:relative;z-index:1;background:var(--surface);border:1px solid var(--line);padding:20px;margin:0 16px 16px}
+  .card h2{margin:0 0 14px}
 
   /* herói */
-  .hero{text-align:center;position:relative;overflow:hidden}
-  .hero::before{content:"";position:absolute;inset:-40% -20% auto;height:220px;
-    background:radial-gradient(closest-side,rgba(200,255,61,.12),transparent);pointer-events:none;
-    opacity:0;transition-property:opacity;transition-duration:.3s}
-  .hero.live::before{opacity:1}
-  .hero h2{text-align:center}
-  .ring{inline-size:200px;block-size:200px;margin:4px auto 8px;display:block}
-  .ring .track{stroke:var(--ring-track)}
-  .ring .bar{stroke:var(--volt);stroke-linecap:round;transition-property:stroke-dashoffset;transition-duration:.3s}
-  .ring text{fill:var(--text);font-size:34px;font-weight:700;font-variant-numeric:tabular-nums}
-  .ring .cap{fill:var(--muted);font-size:11px;font-weight:500;letter-spacing:.08em}
-  #actionLabel{font-size:14px;color:var(--secondary);min-block-size:21px;margin:0}
+  .hero{position:relative;z-index:1;min-block-size:var(--hero-h);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:24px 16px 20px;gap:10px}
+  .hero h2{text-align:center;margin:0}
+  /* texto sobre as órbitas: fundo cheio para a linha não cortar as letras */
+  .hero h2,#actionLabel{background:var(--bg);padding:3px 10px}
+  .ring{inline-size:clamp(220px,72vw,320px);block-size:auto;aspect-ratio:1;display:block}
+  .ring .face{fill:var(--bg)}
+  .ring .track{stroke:var(--border)}
+  .ring .bar{stroke:var(--accent);stroke-linecap:butt;transition-property:stroke-dashoffset;transition-duration:.3s}
+  .ring text{fill:var(--text);font-size:30px;font-weight:900;font-stretch:125%;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums}
+  .ring text.long{font-size:25px}
+  .ring .cap{fill:var(--muted);font-family:var(--mono);font-size:7.5px;font-weight:500;letter-spacing:.18em}
+  #actionLabel{font-size:15px;color:var(--secondary);min-block-size:22px;margin:0}
   #actionLabel strong{color:var(--text)}
-  .hero-actions{display:flex;gap:8px;margin-block-start:16px}
-  .hero-actions .btn{margin:0}
+  /* honestidade sobre quem segura a contagem: shutlite (local) ou Windows */
+  .mode-note{margin:0;max-inline-size:38ch;font-family:var(--mono);font-size:11px;line-height:1.5;letter-spacing:.02em;
+    color:var(--secondary);background:var(--bg);padding:3px 10px;text-wrap:balance}
+  .mode-note.warn{color:var(--danger);font-weight:600}
+  .hero.unconfirmed .ring .bar{stroke:var(--muted)}      /* offline em modo local: o contador gira, mas não é garantia */
+  .hero.unconfirmed #clock{fill:var(--muted)}
+  .hero-actions{display:flex;gap:8px;margin-block-start:6px;inline-size:min(360px,100%)}
+  .hero-actions .btn{margin:0;background-color:var(--bg)}
 
   /* controles */
-  label,.lbl{display:block;font-size:13px;font-weight:500;color:var(--secondary);margin:0 0 6px}
   input[type=text],input[type=password],input[type=time],input[type=number]{
     inline-size:100%;font:inherit;font-size:16px;color:var(--text);background:var(--inset);
-    border:1px solid var(--border);border-radius:var(--r-inner);padding:12px;min-block-size:48px}
-  input:focus-visible,button:focus-visible{outline:2px solid var(--volt);outline-offset:2px}
-  input[type=range]{inline-size:100%;accent-color:var(--volt);min-block-size:44px;margin:0}
+    border:1px solid var(--border);padding:12px;min-block-size:48px}
+  input::placeholder{color:var(--muted);opacity:1}
+  input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  input[type=range]{inline-size:100%;accent-color:var(--accent);min-block-size:44px;margin:0}
   button{font-family:inherit;touch-action:manipulation;cursor:pointer}
-  button:active{transform:scale(.96)}
+  button:active{transform:scale(.98)}
   button:disabled{opacity:.45;cursor:not-allowed;transform:none}
 
-  .seg{display:flex;gap:4px;background:var(--inset);border:1px solid var(--border);
-    border-radius:var(--r-inner);padding:4px;margin-block-end:16px}
-  .seg button{flex:1;border:1px solid transparent;background:transparent;color:var(--muted);
-    border-radius:var(--r-nested);min-block-size:40px;font-size:14px;font-weight:600;
-    transition-property:transform,background-color,color;transition-duration:150ms}
-  .seg button[aria-pressed=true]{background:var(--surface-2);color:var(--text);border-color:var(--border)}
+  .seg{display:flex;border:1px solid var(--border);margin-block-end:18px}
+  .seg button{flex:1;border:0;background:transparent;color:var(--secondary);min-block-size:44px;
+    font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    transition-property:background-color,color;transition-duration:150ms}
+  .seg button + button{border-inline-start:1px solid var(--border)}
+  .seg button[aria-pressed=true]{background:var(--btn);color:var(--on-btn)}
 
-  .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-block-end:16px}
-  .chip{border:1px solid var(--border);background:var(--surface-2);color:var(--text);
-    border-radius:var(--r-inner);min-block-size:56px;font-size:16px;font-weight:700;
-    font-variant-numeric:tabular-nums;line-height:1.1;
-    transition-property:transform,border-color;transition-duration:150ms}
-  .chip small{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-block-start:2px}
+  .chips{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-block-end:18px}
+  .chip{border:1px solid var(--border);background:transparent;color:var(--text);min-block-size:56px;
+    font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;
+    transition-property:transform,border-color,background-color;transition-duration:150ms}
+  .chip small{display:block;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);margin-block-start:3px}
 
   .row{display:flex;gap:8px;align-items:stretch}
   .row > *{flex:1;min-inline-size:0}
   .row > .fit{flex:none}
+  .row > .btn.fit{inline-size:auto;min-inline-size:112px;padding-inline:20px}   /* Salvar: largura do conteúdo; o campo de PIN ocupa o resto */
   .row > .narrow{flex:none;inline-size:96px}
-  .btn{inline-size:100%;border:none;border-radius:var(--r-inner);min-block-size:48px;padding:0 16px;
-    font-size:15px;font-weight:600;margin-block-start:8px;
-    transition-property:transform,background-color,opacity,filter;transition-duration:150ms}
+  .row > .time{flex:none;inline-size:128px}
+  .row.stack{flex-wrap:wrap}           /* sem espaço: o botão desce, o rótulo não quebra */
+  .row.stack > .btn{flex:1 1 150px;white-space:nowrap}
+  .btn{inline-size:100%;border:1px solid transparent;min-block-size:48px;padding:0 10px;line-height:1.25;
+    font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+    margin-block-start:8px;transition-property:transform,background-color,opacity,border-color;transition-duration:150ms}
   .row > .btn{margin-block-start:0}
-  .btn-volt{background:var(--volt);color:var(--volt-ink);box-shadow:0 4px 24px rgba(200,255,61,.25)}
-  .btn-line{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
-  .btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid rgba(255,133,133,.35)}
-
-  /* acesso */
-  .qrbox{display:flex;gap:16px;align-items:center;background:#fff;color:#111;
-    border-radius:var(--r-inner);padding:12px}
-  #qr{flex:none;inline-size:140px;block-size:140px;display:flex;align-items:center;justify-content:center;
-    font-size:12px;color:#555;text-align:center;overflow-wrap:anywhere}
-  #qr img,#qr canvas{display:block}
-  .qrmeta{font-size:12.5px;line-height:1.5;overflow-wrap:anywhere;min-inline-size:0}
-  .qrmeta strong{display:block;font-size:13px;margin-block-end:4px}
-  .qrmeta span{display:block;margin-block-start:6px;color:#555}
-  .pinrow{display:flex;align-items:center;gap:12px;margin-block-start:12px;
-    background:var(--inset);border:1px solid var(--border);border-radius:var(--r-inner);padding:4px 4px 4px 12px}
-  .pinrow .lbl{margin:0}
-  .pinrow code{flex:1;font:inherit;font-size:18px;font-weight:700;letter-spacing:.14em;font-variant-numeric:tabular-nums}
-  .pinrow button{flex:none;border:1px solid var(--border);background:var(--surface-2);color:var(--text);
-    border-radius:var(--r-nested);min-block-size:40px;padding:0 12px;font-size:13px;font-weight:600}
+  .btn-primary{background:var(--btn);color:var(--on-btn)}
+  .btn-line{background:transparent;color:var(--text);border-color:var(--border)}
+  .btn-danger{background:transparent;color:var(--danger);border-color:var(--danger)}
+  .linkbtn{display:block;inline-size:100%;min-block-size:44px;margin-block-start:8px;background:transparent;
+    border:1px solid transparent;color:var(--secondary);font-family:var(--mono);font-size:12px;font-weight:600;
+    letter-spacing:.08em;text-transform:uppercase;text-decoration:underline;text-underline-offset:4px;
+    transition-property:transform,border-color;transition-duration:150ms}
+  .grp.sep{border-block-start:1px solid var(--line);margin-block-start:20px;padding-block-start:16px}
   .saved{font-size:13px;color:var(--secondary);margin:8px 0 0;min-block-size:20px}
 
-  footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.6}
+  /* acesso */
+  .qrbox{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:center;background:var(--qr-bg);color:var(--qr-ink);
+    border:1px solid var(--border);padding:16px}
+  #qr{flex:none;inline-size:var(--qr,140px);block-size:var(--qr,140px);display:flex;align-items:center;
+    justify-content:center;font-size:12px;color:var(--qr-muted);text-align:center;overflow-wrap:anywhere}
+  #qrCode{inline-size:100%;block-size:100%}
+  #qr img,#qr canvas{display:block;inline-size:100% !important;block-size:100% !important;image-rendering:pixelated}
+  .qrmeta{flex:1 1 124px;font-size:12.5px;line-height:1.5;min-inline-size:0}
+  .qrmeta strong{display:block;font-size:13px;margin-block-end:4px}
+  .qrmeta span{display:block;margin-block-start:6px;color:var(--qr-muted);font-family:var(--mono);font-size:11px;white-space:nowrap}
+  .pinrow{display:flex;align-items:center;gap:12px;margin-block-start:12px;
+    background:var(--inset);border:1px solid var(--border);padding:4px 4px 4px 12px}
+  .pinrow .lbl{margin:0}
+  .pinrow code{flex:1;font-family:var(--mono);font-size:18px;font-weight:700;letter-spacing:.14em}
+  .pinrow button{flex:none;border:1px solid var(--border);background:transparent;color:var(--text);
+    min-block-size:44px;padding:0 14px;font-family:var(--mono);font-size:11px;font-weight:600;
+    letter-spacing:.1em;text-transform:uppercase}
+
+  footer{position:relative;z-index:1;font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);
+    text-align:center;line-height:1.7;padding:16px 16px calc(24px + env(safe-area-inset-bottom));
+    border-block-start:1px solid var(--line);background:var(--bg)}
+  footer strong{color:var(--secondary);font-weight:600}
 
   /* toast + diálogos */
   #toast{position:fixed;inset-inline:16px;inset-block-end:calc(16px + env(safe-area-inset-bottom));
     display:flex;justify-content:center;pointer-events:none;z-index:50;
     opacity:0;transition-property:opacity;transition-duration:200ms}
   #toast.show{opacity:1}
-  #toast span{background:var(--toast);border:1px solid var(--border);color:var(--text);
-    padding:12px 16px;border-radius:var(--r-inner);font-size:14px;max-inline-size:440px}
-  dialog{background:var(--surface);color:var(--text);border:1px solid var(--border);
-    border-radius:var(--r-card);padding:24px;inline-size:min(400px,calc(100vw - 48px))}
-  dialog::backdrop{background:rgba(0,0,0,.6)}
-  dialog h3{margin:0 0 8px;font-size:17px;text-wrap:balance}
+  #toast span{background:var(--toast);color:var(--on-toast);padding:12px 16px;font-size:14px;max-inline-size:440px}
+  dialog{background:var(--surface);color:var(--text);border:1px solid var(--text);
+    padding:24px;inline-size:min(400px,calc(100vw - 48px))}
+  dialog::backdrop{background:var(--backdrop)}
+  dialog h3{margin:0 0 8px;font-size:18px;font-weight:800;text-wrap:balance}
   dialog p{margin:0 0 16px;font-size:14px;line-height:1.5;color:var(--secondary);text-wrap:pretty}
   dialog input{margin-block-end:16px}
+  /* erro dentro do diálogo: o toast fica atrás do fundo escuro do modal */
+  dialog .dlg-err{margin:-8px 0 16px;font-size:13px;font-weight:600;color:var(--danger)}
 
-  @media (max-width:360px){
-    .qrbox{flex-direction:column;align-items:flex-start}
+  /* ============ mobile (padrão): coluna única com scroll ============ */
+  @media (max-width:899px), (max-height:599px){
+    .logo{block-size:24px}
+    #sub:not(.sim){display:none}
+    #sub{flex:1 0 100%;order:9;border-block-start:1px solid var(--line);min-block-size:36px;padding-inline:16px}
+    .cell.status{flex:1}
+    .ver{display:none}
+    .cols{position:relative;z-index:1;display:flex;flex-direction:column}
+    .col{display:contents}
   }
+  @media (max-width:360px){
+    .logo{block-size:22px}
+    .cell.brand{padding-inline:12px}
+    .qrbox{flex-direction:column;align-items:flex-start}
+    .qrmeta{flex:none}
+    .qrmeta span{white-space:normal;overflow-wrap:anywhere}
+  }
+
+  /* ============ desktop: tela inteira, sem scroll de página ============ */
+  @media (min-width:900px) and (min-height:600px){
+    html,body{block-size:100%;overflow:hidden}
+    .app{block-size:100vh;block-size:100dvh;min-block-size:0}
+    .stage{display:grid;grid-template-columns:clamp(272px,25vw,440px) minmax(0,1fr) clamp(272px,25vw,440px);
+      overflow:hidden}
+    :root{--hero-h:100%}
+    .orbits{block-size:100%}
+    .orbits svg,.orbits{overflow:hidden}
+    .cols{display:contents}
+    .col{position:relative;z-index:1;min-block-size:0;overflow:auto;background:var(--surface);
+      display:flex;flex-direction:column}
+    .col-left{grid-column:1;grid-row:1;border-inline-end:1px solid var(--line)}
+    .col-right{grid-column:3;grid-row:1;border-inline-start:1px solid var(--line)}
+    .col .card{margin:0;border:0;border-block-end:1px solid var(--line);padding:clamp(14px,2.4vh,24px) clamp(16px,1.8vw,24px);background:transparent}
+    .col .card:last-child{border-block-end:0;flex:1}
+    /* esquerda: grupos espalhados na altura; controles crescem com a tela (vh) */
+    .col-left .card{flex:1;display:flex;flex-direction:column;gap:clamp(14px,3.4vh,40px)}
+    .col-left .card h2{margin:0}
+    .col-left .card > div{margin:0}
+    .col-left .grp{display:flex;flex-direction:column;gap:6px}
+    .col-left .grp.sep{padding-block-start:clamp(14px,3.4vh,40px)}
+    .col-left .chips{margin:0}
+    /* direita: mesmo ritmo vertical da esquerda (vale também no remoto, sem QR) */
+    .col-right .card{display:flex;flex-direction:column;gap:clamp(12px,2.8vh,32px)}
+    .col-right .card > *{margin:0}
+    .col-right .card h2{margin:0}
+    .chip{min-block-size:clamp(56px,8.5vh,92px)}
+    .btn,.seg button,input[type=text],input[type=password],input[type=time],input[type=number]{min-block-size:clamp(48px,5.6vh,60px)}
+    .hero{grid-column:2;grid-row:1;min-block-size:0;padding:16px;gap:clamp(6px,1.2vh,14px)}
+    .ring{inline-size:clamp(220px,min(34vw,54vh),640px)}
+    .ring text{font-size:30px}
+    .ring text.long{font-size:25px}
+    #actionLabel{font-size:clamp(15px,2vh,19px)}
+    #qr{--qr:clamp(104px,15vh,150px)}
+    .hero-actions{inline-size:min(380px,100%)}
+    footer{border-block-start:1px solid var(--line);padding:8px 16px;font-size:10.5px;line-height:1.4}
+    footer br{display:none}
+    .seg{margin-block-end:clamp(10px,2vh,18px)}
+    .chips{margin-block-end:clamp(10px,2vh,18px)}
+    .split{margin:clamp(10px,2vh,20px) 0 clamp(8px,1.6vh,16px)}
+  }
+  @media (min-width:900px) and (min-height:600px) and (max-height:760px){
+    .chip{min-block-size:48px}
+    .card h2{margin-block-end:10px}
+  }
+  /* telas altas: QR grande em coluna */
+  @media (min-width:900px) and (min-height:820px){
+    .qrbox{flex-direction:column;text-align:center;padding:16px}
+    .qrmeta{flex:none}
+    #qr{--qr:clamp(160px,21vh,240px)}
+  }
+
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{transition:none !important;animation:none !important}
   }
   @media (hover:hover){
-    .chip:hover{border-color:var(--volt)}
-    .btn-volt:hover{filter:brightness(1.06)}
-    .btn-line:hover,.pinrow button:hover{border-color:rgba(255,255,255,.2)}
+    .chip:hover{border-color:var(--accent);background:var(--surface-2)}
+    .seg button:not([aria-pressed=true]):hover{background:var(--surface-2)}
+    .btn-primary:hover{opacity:.88}
+    .btn-line:hover,.pinrow button:hover,.btn-danger:hover{background:var(--surface-2)}
+    .linkbtn:hover{border-color:var(--border)}
+    .iconbtn:hover{background:var(--surface-2)}
   }
 </style>
 </head>
 <body>
-<main class="wrap">
-  <header class="top">
-    <div class="brand">
-      <span class="dot idle" id="dot" aria-hidden="true"></span>
-      <div>
-        <h1>shutlite</h1>
-        <p class="sub" id="sub">desligue o PC sem sair da cama</p>
-      </div>
+<div class="app">
+  <header class="bar">
+    <div class="cell brand">
+      <h1 class="logo-h">
+      <svg class="logo" viewBox="0 0 408 84" role="img" aria-label="shutlite" focusable="false">
+        <g transform="translate(2 2) scale(2.5)">
+          <g class="sym">
+            <path d="M27.53 12.25 A12.12 12.12 0 1 1 21.69 5.30"/>
+            <circle cx="16" cy="16" r="6.65"/>
+          </g>
+          <rect class="sq" x="23.85" y="6.65" width="2.85" height="2.85"/>
+        </g>
+        <g class="word" transform="translate(96 24)">
+        <path transform="translate(0)" d="M4 3.7C7 0.9 11.5-.5 18-.5C25.4-.5 31.1 2.5 34.1 7.5L27.6 12.3C25.5 9.3 22.2 7.8 17.7 7.8C13.8 7.8 11.5 8.8 11.5 10.8C11.5 12.7 13.5 13.4 17.2 14L22.3 14.9C30.3 16.3 34.4 19.5 34.4 25.1C34.4 32.5 27.7 36.5 17.8 36.5C9.9 36.5 3.5 33.5 0 28L6.7 22.9C9.3 26.4 13.3 28.3 18.1 28.3C22.7 28.3 25.2 27.3 25.2 25.3C25.2 23.6 23.6 22.8 19.7 22.1L14.3 21.1C6.4 19.7 2 16.2 2 10.6C2 7.9 2.7 5.7 4 3.7Z"/>
+        <path transform="translate(41)" d="M0 0H9.5V13.5H27.5V0H37V36H27.5V22H9.5V36H0Z"/>
+        <path transform="translate(85)" d="M0 0H9.5V20.5C9.5 25.6 12.6 28 18.5 28C24.4 28 27.5 25.6 27.5 20.5V0H37V21C37 31.2 30.3 36.5 18.5 36.5C6.7 36.5 0 31.2 0 21Z"/>
+        <path transform="translate(127)" d="M0 0H38V8.5H23.75V36H14.25V8.5H0Z"/>
+        <path transform="translate(171)" d="M0 0H9.5V27.5H32V36H0Z"/>
+        <path transform="translate(210)" d="M0 0H9.5V36H0Z"/>
+        <path transform="translate(226)" d="M0 0H38V8.5H23.75V36H14.25V8.5H0Z"/>
+        <path transform="translate(270)" d="M0 0H34V8H9.5V13.9H31V21.8H9.5V28H34V36H0Z"/>
+        </g>
+      </svg>
+      </h1>
     </div>
-    <span class="pill" id="pill" role="status">Conectando…</span>
+    <div class="cell status">
+      <span class="dot idle" id="dot" aria-hidden="true"></span>
+      <span class="pill" id="pill" role="status">Conectando…</span>
+    </div>
+    <p class="cell grow" id="sub">desligue o PC sem sair da cama</p>
+    <span class="cell ver" id="ver" hidden></span>
+    <button class="iconbtn" id="btnTheme" aria-label="Usar tema escuro">
+      <svg class="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>
+      <svg class="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
+    </button>
   </header>
 
-  <section class="card hero" id="hero" aria-labelledby="t-hero">
-    <h2 id="t-hero">Contagem regressiva</h2>
-    <svg class="ring" viewBox="0 0 200 200" role="img" aria-labelledby="clock clockCap">
-      <circle class="track" cx="100" cy="100" r="84" fill="none" stroke-width="12"/>
-      <circle class="bar" id="ringBar" cx="100" cy="100" r="84" fill="none" stroke-width="12"
-        stroke-dasharray="527.8" stroke-dashoffset="527.8" transform="rotate(-90 100 100)"/>
-      <text x="100" y="104" text-anchor="middle" id="clock">--:--</text>
-      <text class="cap" x="100" y="128" text-anchor="middle" id="clockCap">PARADO</text>
-    </svg>
-    <p id="actionLabel">Nada agendado.</p>
-    <div class="hero-actions" id="heroActions" hidden>
-      <button class="btn btn-line" id="btnExtend">+ 10 min</button>
-      <button class="btn btn-danger" id="btnCancel">Cancelar</button>
-    </div>
-  </section>
-
-  <section class="card" aria-labelledby="t-sched">
-    <h2 id="t-sched">Agendar</h2>
-    <div class="seg" role="group" aria-label="O que fazer no fim da contagem">
-      <button data-mode="shutdown" aria-pressed="true">Desligar</button>
-      <button data-mode="restart" aria-pressed="false">Reiniciar</button>
-    </div>
-
-    <span class="lbl" id="l-chips">Daqui a — um toque agenda</span>
-    <div class="chips" role="group" aria-labelledby="l-chips">
-      <button class="chip" data-min="15">15<small>min</small></button>
-      <button class="chip" data-min="30">30<small>min</small></button>
-      <button class="chip" data-min="60">1<small>hora</small></button>
-      <button class="chip" data-min="120">2<small>horas</small></button>
+  <main class="stage">
+    <div class="orbits" aria-hidden="true">
+      <svg viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
+        <g class="g1">
+          <circle class="o" cx="500" cy="500" r="190"/>
+          <circle class="o" cx="500" cy="500" r="360"/>
+          <circle class="o arc" cx="500" cy="500" r="360" stroke-dasharray="210 2052"/>
+          <circle class="o" cx="500" cy="500" r="620"/>
+        </g>
+        <g class="g2">
+          <circle class="o tick" cx="500" cy="500" r="270"/>
+          <circle class="o arc" cx="500" cy="500" r="270" stroke-dasharray="130 1566" stroke-dashoffset="-700"/>
+          <circle class="o tick" cx="500" cy="500" r="480"/>
+        </g>
+        <g class="g3">
+          <circle class="o" cx="500" cy="500" r="760"/>
+          <circle class="o arc" cx="500" cy="500" r="760" stroke-dasharray="320 4455" stroke-dashoffset="-1600"/>
+          <circle class="o tick" cx="500" cy="500" r="900"/>
+        </g>
+      </svg>
     </div>
 
-    <label for="mins">Outro tempo, em minutos (1 a 1440)</label>
-    <input type="range" id="slider" min="5" max="240" step="5" value="45" aria-label="Minutos, de 5 a 240">
-    <div class="row">
-      <input class="narrow" type="number" id="mins" value="45" min="1" max="1440" inputmode="numeric">
-      <button class="btn btn-line" id="btnCustom">Agendar 45 min</button>
-    </div>
 
-    <hr class="split">
-
-    <label for="at">Num horário exato</label>
-    <div class="row">
-      <input class="narrow" type="time" id="at" value="23:30" style="inline-size:128px">
-      <button class="btn btn-line" id="btnAt">Agendar às 23:30</button>
-    </div>
-  </section>
-
-  <section class="card" aria-labelledby="t-now">
-    <h2 id="t-now">Agora</h2>
-    <div class="row">
-      <button class="btn btn-volt" id="btnNow">Desligar agora</button>
-      <button class="btn btn-line" id="btnRestart">Reiniciar agora</button>
-    </div>
-  </section>
-
-  <section class="card" aria-labelledby="t-conn">
-    <h2 id="t-conn">Acesso</h2>
-
-    <div id="accessLocal" hidden>
-      <div class="qrbox">
-        <div id="qr" role="img" aria-label="QR code para abrir o painel no celular">carregando…</div>
-        <div class="qrmeta">
-          <strong>Aponte a câmera do celular</strong>
-          O código já leva o PIN: abre pronto para usar.
-          <span id="qrurl">—</span>
-        </div>
+    <section class="hero" id="hero" aria-labelledby="t-hero">
+      <h2 class="eyebrow" id="t-hero">Contagem regressiva</h2>
+      <svg class="ring" viewBox="0 0 200 200" role="img" aria-labelledby="clock clockCap">
+        <circle class="face" cx="100" cy="100" r="98"/>
+        <circle class="track" cx="100" cy="100" r="88" fill="none" stroke-width="3"/>
+        <circle class="bar" id="ringBar" cx="100" cy="100" r="88" fill="none" stroke-width="6"
+          stroke-dasharray="552.9" stroke-dashoffset="552.9" transform="rotate(-90 100 100)"/>
+        <text x="100" y="106" text-anchor="middle" id="clock">--:--</text>
+        <text class="cap" x="100" y="128" text-anchor="middle" id="clockCap">PARADO</text>
+      </svg>
+      <p id="actionLabel">Nada agendado.</p>
+      <p id="modeNote" class="mode-note" aria-live="polite" hidden></p>
+      <div class="hero-actions" id="heroActions" hidden>
+        <button class="btn btn-line" id="btnExtend">+ 10 min</button>
+        <button class="btn btn-danger" id="btnCancel">Cancelar</button>
       </div>
-      <div class="pinrow">
-        <span class="lbl">PIN</span>
-        <code id="pinShow">••••••</code>
-        <button id="btnReveal" aria-pressed="false">Mostrar</button>
+    </section>
+
+    <div class="cols">
+      <div class="col col-left">
+        <section class="card" aria-labelledby="t-sched">
+          <h2 id="t-sched">Agendar</h2>
+          <div class="seg" role="group" aria-label="O que fazer no fim da contagem">
+            <button data-mode="shutdown" aria-pressed="true">Desligar</button>
+            <button data-mode="restart" aria-pressed="false">Reiniciar</button>
+          </div>
+
+          <div class="grp">
+          <span class="lbl" id="l-chips">Daqui a… (um toque agenda)</span>
+          <div class="chips" role="group" aria-labelledby="l-chips">
+            <button class="chip" data-min="15">15<small>min</small></button>
+            <button class="chip" data-min="30">30<small>min</small></button>
+            <button class="chip" data-min="60">1<small>hora</small></button>
+            <button class="chip" data-min="120">2<small>horas</small></button>
+          </div>
+
+          </div>
+
+          <div class="grp">
+            <label for="mins">Outro tempo, em minutos (1 a 1440)</label>
+            <input type="range" id="slider" min="5" max="240" step="5" value="45" aria-label="Minutos, de 5 a 240">
+            <div class="row stack">
+              <input class="narrow" type="number" id="mins" value="45" min="1" max="1440" inputmode="numeric">
+              <button class="btn btn-line" id="btnCustom">Agendar 45 min</button>
+            </div>
+          </div>
+
+          <div class="grp sep">
+            <label for="at">Num horário exato</label>
+            <div class="row stack">
+              <input class="time" type="time" id="at" value="23:30">
+              <button class="btn btn-line" id="btnAt">Agendar às 23:30</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+
+      <div class="col col-right">
+        <section class="card" aria-labelledby="t-now">
+          <h2 id="t-now">Agora</h2>
+          <div class="row">
+            <button class="btn btn-primary" id="btnNow">Desligar agora</button>
+            <button class="btn btn-line" id="btnRestart">Reiniciar agora</button>
+          </div>
+          <button class="linkbtn" id="btnCancelAll" aria-describedby="cancelAllHint">Cancelar tudo</button>
+          <p class="saved" id="cancelAllHint">Garante que nada fique agendado no PC, mesmo com o painel em “Ocioso”.</p>
+        </section>
+
+        <section class="card" aria-labelledby="t-conn">
+          <h2 id="t-conn">Acesso</h2>
+
+          <div id="accessLocal" hidden>
+            <div class="qrbox">
+              <div id="qr">
+                <div id="qrCode" role="img" aria-label="QR code para abrir o painel no celular" hidden></div>
+                <span id="qrNote">carregando…</span>
+              </div>
+              <div class="qrmeta">
+                <strong>Aponte a câmera do celular</strong>
+                O código já leva o PIN: abre pronto para usar.
+                <span id="qrurl">—</span>
+              </div>
+            </div>
+            <div class="pinrow">
+              <span class="lbl">PIN</span>
+              <code id="pinShow">••••••</code>
+              <button id="btnReveal" aria-controls="pinShow">Mostrar</button>
+            </div>
+          </div>
+
+          <div id="accessRemote" hidden>
+            <p class="hint">O PIN aparece no painel aberto no próprio PC. Ou escaneie o QR de lá e ele entra sozinho.</p>
+            <label for="pin">PIN deste PC</label>
+            <div class="row">
+              <input type="password" id="pin" inputmode="numeric" autocomplete="off" placeholder="6 dígitos">
+              <button class="btn btn-line fit" id="btnPin">Salvar</button>
+            </div>
+            <p class="saved" id="pinSaved"></p>
+          </div>
+        </section>
       </div>
     </div>
+  </main>
 
-    <div id="accessRemote" hidden>
-      <p class="hint">O PIN aparece no painel aberto no próprio PC. Ou escaneie o QR de lá e ele entra sozinho.</p>
-      <label for="pin">PIN deste PC</label>
-      <div class="row">
-        <input type="password" id="pin" inputmode="numeric" autocomplete="off" placeholder="6 dígitos">
-        <button class="btn btn-line fit" id="btnPin">Salvar</button>
-      </div>
-      <p class="saved" id="pinSaved"></p>
-    </div>
-  </section>
-
-  <footer>Funciona só na sua rede local.<br>Desligar aqui é <strong>shutdown de verdade</strong>, não logoff.</footer>
-</main>
+  <footer>Funciona só na sua rede local. <br>Desligar aqui <strong>desliga o PC de verdade</strong>, não faz logoff.</footer>
+</div>
 
 <dialog id="dlg" aria-labelledby="dlgT">
   <h3 id="dlgT"></h3>
   <p id="dlgP"></p>
   <div class="row">
     <button class="btn btn-line" id="dlgBack">Voltar</button>
-    <button class="btn btn-volt" id="dlgGo"></button>
+    <button class="btn btn-primary" id="dlgGo"></button>
   </div>
 </dialog>
 
@@ -258,10 +506,11 @@
     <h3 id="pinDlgT">Qual é o PIN?</h3>
     <p>Ele aparece no painel aberto no próprio PC. Fica salvo neste aparelho.</p>
     <label for="pinIn" class="sr">PIN</label>
-    <input type="password" id="pinIn" inputmode="numeric" autocomplete="off" placeholder="PIN">
+    <input type="password" id="pinIn" inputmode="numeric" autocomplete="off" placeholder="6 dígitos" aria-describedby="pinErr">
+    <p class="dlg-err" id="pinErr" role="alert" hidden></p>
     <div class="row">
       <button type="button" class="btn btn-line" id="pinCancel">Voltar</button>
-      <button type="submit" class="btn btn-volt">Continuar</button>
+      <button type="submit" class="btn btn-primary">Continuar</button>
     </div>
   </form>
 </dialog>
@@ -273,7 +522,7 @@
 <script>
 "use strict";
 const $ = (id) => document.getElementById(id);
-const CIRC = 527.8, MAX_S = 86400, PIN_KEY = "shutlite-pin";
+const CIRC = 552.9, MAX_S = 86400, PIN_MIN = 6, PIN_KEY = "shutlite-pin", THEME_KEY = "shutlite-theme";
 const WORDS = {
   shutdown: {verb: "Desliga", noun: "Desligamento", pill: "Agendado", cap: "DESLIGA EM"},
   restart:  {verb: "Reinicia", noun: "Reinício", pill: "Reinício agendado", cap: "REINICIA EM"},
@@ -286,10 +535,50 @@ const store = {
   del(k){ try { localStorage.removeItem(k); } catch(e){} },
 };
 
+// ---------------------------------------------------------------- tema
+// padrão = preferência do sistema; o botão da barra alterna e lembra (shutlite-theme)
+const darkMq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+function resolvedTheme(){
+  const t = store.get(THEME_KEY);
+  return t === "light" || t === "dark" ? t : (darkMq && darkMq.matches ? "dark" : "light");
+}
+function applyTheme(){
+  const r = resolvedTheme(), saved = store.get(THEME_KEY);
+  const root = document.documentElement;
+  root.dataset.resolved = r;
+  if (saved === "light" || saved === "dark") root.dataset.theme = saved; else delete root.dataset.theme;
+  $("btnTheme").setAttribute("aria-label", r === "dark" ? "Usar tema claro" : "Usar tema escuro");
+  // meta color-scheme e theme-color acompanham o tema ativo (sem escolha salva: segue o sistema)
+  document.querySelector('meta[name="color-scheme"]').content = saved === "light" || saved === "dark" ? saved : "light dark";
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.remove());
+  const m = document.createElement("meta");
+  m.name = "theme-color"; m.content = r === "dark" ? "#0B0B0C" : "#F2F1EE";
+  document.head.appendChild(m);
+}
+$("btnTheme").addEventListener("click", () => {
+  store.set(THEME_KEY, resolvedTheme() === "dark" ? "light" : "dark");
+  applyTheme();
+});
+if (darkMq && darkMq.addEventListener) darkMq.addEventListener("change", applyTheme);
+applyTheme();
+
 let pin = store.get(PIN_KEY) || "";
 let isLocal = false, online = null, scheduled = false;
 let mode = "shutdown";
 let total = 0, rev = -1, deadline = 0, curAction = null, localTimer = null;
+let busy = false, resync = false, pendingNote = "";
+// modo do agendamento segundo o servidor: "local" (contagem só no shutlite) | "windows" (entregue) | null
+let srvMode = null, ownActionAt = 0;
+const HANDOFF_S = 60;  // espelha HANDOFF_SECONDS do servidor: até 60 s o Windows já é o dono
+
+// requisição em andamento: trava chips e botões para evitar toque repetido
+const LOCKABLE = ".chip,#btnCustom,#btnAt,#btnNow,#btnRestart,#btnExtend,#btnCancel,#btnCancelAll";
+function setBusy(v){
+  busy = v;
+  document.querySelectorAll(LOCKABLE).forEach((b) => { b.disabled = v; });
+  if (!v && scheduled) $("btnExtend").disabled = extendBlocked();
+}
+function extendBlocked(){ return Math.round((deadline - Date.now()) / 1000) + 600 > MAX_S; }
 
 // pareamento: o QR do PC abre .../#pin=XXXXXX; o fragmento nunca vai ao servidor
 let justPaired = false;
@@ -310,13 +599,14 @@ function setPin(v){
 }
 
 let toastT = null;
-function toast(msg){
+// erro fica ~6s (dá tempo de ler a correção); sucesso some em 3,2s
+function toast(msg, isError){
   const bar = $("toast");
   $("toastMsg").textContent = msg;
   $("live").textContent = msg;
   bar.classList.add("show");
   clearTimeout(toastT);
-  toastT = setTimeout(() => bar.classList.remove("show"), 3200);
+  toastT = setTimeout(() => bar.classList.remove("show"), isError ? 6000 : 3200);
 }
 
 // ---------------------------------------------------------------- diálogos
@@ -335,7 +625,7 @@ $("dlgGo").addEventListener("click", () => $("dlg").close("ok"));
 function askPin(){
   return new Promise((resolve) => {
     const d = $("pinDlg");
-    $("pinIn").value = "";
+    $("pinIn").value = ""; $("pinErr").hidden = true;
     d.returnValue = "";
     d.addEventListener("close", () => resolve(d.returnValue === "ok"), {once: true});
     d.showModal(); $("pinIn").focus();
@@ -345,10 +635,14 @@ $("pinCancel").addEventListener("click", () => $("pinDlg").close("back"));
 $("pinForm").addEventListener("submit", (e) => {
   e.preventDefault();
   const v = $("pinIn").value.trim();
-  if (v.length < 4){ toast("PIN curto demais. São ao menos 4 dígitos."); $("pinIn").focus(); return; }
+  if (v.length < PIN_MIN){
+    $("pinErr").textContent = `PIN curto demais. São ao menos ${PIN_MIN} dígitos.`; $("pinErr").hidden = false;
+    $("pinIn").focus(); return;
+  }
   setPin(v);
   $("pinDlg").close("ok");
 });
+$("pinIn").addEventListener("input", () => { $("pinErr").hidden = true; });
 async function ensurePin(){ return pin ? true : askPin(); }
 
 // ---------------------------------------------------------------- API
@@ -357,7 +651,7 @@ async function api(path, body = {}){
   let r;
   try {
     r = await fetch(path, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)});
-  } catch(e){ setOnline(false); toast("Sem conexão com o PC. Confira o Wi-Fi."); return null; }
+  } catch(e){ setOnline(false); toast("Sem conexão com o PC. Confira o Wi-Fi.", true); return null; }
   if (r.ok) return r.json();
   let msg = "Não foi possível concluir. Tente de novo.";
   try { msg = (await r.json()).error || msg; } catch(e){}
@@ -365,7 +659,7 @@ async function api(path, body = {}){
     if (!isLocal) setPin("");  // esquece o PIN errado: a próxima ação pede de novo
     msg = "PIN incorreto. Toque de novo para digitar o PIN certo.";
   }
-  toast(msg);
+  toast(msg, true);
   return null;
 }
 
@@ -398,10 +692,11 @@ function secondsUntil(hhmm){
 function renderLocal(){
   const left = Math.max(0, Math.round((deadline - Date.now()) / 1000));
   $("clock").textContent = fmt(left);
+  $("clock").classList.toggle("long", left >= 3600);  // h:mm:ss é mais largo: fonte menor dentro do anel
   document.title = `${fmt(left)} · shutlite`;
   const frac = total > 0 ? Math.min(1, left / total) : 0;
   $("ringBar").style.strokeDashoffset = String(CIRC * (1 - frac));
-  $("btnExtend").disabled = left + 600 > MAX_S;
+  $("btnExtend").disabled = busy || left + 600 > MAX_S;
   if (left <= 0){ stopLocal(); tick(); }  // zerou: busca o estado final
 }
 function startLocal(){ if (!localTimer) localTimer = setInterval(renderLocal, 500); }
@@ -413,42 +708,78 @@ function paintPill(){
   pill.classList.toggle("off", online === false);
   $("dot").classList.toggle("idle", online === false || !scheduled);
   pill.textContent = online === false ? "Sem conexão" : online === null ? "Conectando…" : scheduled ? w.pill : "Ocioso";
+  paintMode();
 }
-function setOnline(v){ if (online !== v){ online = v; paintPill(); } }
+// rótulo do anel + nota do herói conforme o modo e a conexão
+const NOTES = {
+  local: "A contagem é do shutlite: o PC só desliga se ele continuar rodando.",
+  windows: "Entregue ao Windows: o aviso dele vai aparecer.",
+  offline: "Sem conexão com o shutlite: o horário não está garantido.",
+};
+function paintMode(){
+  const note = $("modeNote"), w = WORDS[curAction] || WORDS.shutdown;
+  const unconfirmed = scheduled && online === false && srvMode === "local";  // offline: o relógio local não prova nada
+  $("hero").classList.toggle("unconfirmed", unconfirmed);
+  if (scheduled) $("clockCap").textContent = unconfirmed ? "SEM CONFIRMAÇÃO" : w.cap;
+  const text = !scheduled ? "" : unconfirmed ? NOTES.offline : srvMode ? NOTES[srvMode] : "";
+  if (note.textContent !== text) note.textContent = text;
+  note.hidden = !text;
+  note.classList.toggle("warn", unconfirmed);
+}
+function setOnline(v){
+  if (!v) resync = true;  // servidor pode ter reiniciado (rev volta a 0): o próximo frame vale
+  if (online !== v){ online = v; paintPill(); }
+}
 
 function showScheduled(action, note){
   const w = WORDS[action] || WORDS.shutdown;
   scheduled = true; curAction = action;
   $("clockCap").textContent = w.cap;
-  $("actionLabel").innerHTML = note || `${w.verb} às <strong>${clockTime(deadline)}</strong>`;
+  $("actionLabel").innerHTML = note || pendingNote || `${w.verb} às <strong>${clockTime(deadline)}</strong>`;
   $("heroActions").hidden = false;
   $("hero").classList.add("live");
+  document.body.classList.add("live");  // anima as órbitas (reduced-motion zera no CSS)
   startLocal(); renderLocal(); paintPill();
 }
 function showIdle(){
   stopLocal();
-  scheduled = false; total = 0; deadline = 0; curAction = null;
-  $("clock").textContent = "--:--"; $("clockCap").textContent = "PARADO";
+  scheduled = false; total = 0; deadline = 0; curAction = null; srvMode = null;
+  $("clock").textContent = "--:--"; $("clock").classList.remove("long"); $("clockCap").textContent = "PARADO";
   $("ringBar").style.strokeDashoffset = String(CIRC);
   $("actionLabel").textContent = "Nada agendado.";
   $("heroActions").hidden = true;
   $("hero").classList.remove("live");
+  document.body.classList.remove("live");
   document.title = "shutlite";
   paintPill();
 }
 // pintura otimista: resposta na hora, o servidor confirma em seguida
 function optimistic(seconds, action){
   total = seconds; deadline = Date.now() + seconds * 1000;
+  srvMode = seconds <= HANDOFF_S ? "windows" : "local";  // palpite até o servidor confirmar
   showScheduled(action, "Enviando…");
 }
 function paint(st){
   if (!st) return;
-  if (typeof st.rev === "number") rev = st.rev;
+  if (typeof st.rev === "number"){
+    // frame antigo (rev menor) é descartado, exceto logo após queda/reconexão
+    if (st.rev < rev && !resync) return;
+    rev = st.rev; resync = false;
+  }
+  const wasMode = srvMode, hadLeft = scheduled ? (deadline - Date.now()) / 1000 : 0;
   if (st.scheduled){
     total = st.total || Math.max(total, st.left);
     deadline = Date.now() + st.left * 1000;
+    srvMode = st.mode || null;  // servidor antigo sem "mode": sem nota
+    if (wasMode === "local" && srvMode === "windows" && !busy) toast("Entregue ao Windows. O aviso dele vai aparecer.");
     showScheduled(st.action);
-  } else showIdle();
+  } else {
+    // sumiu sozinho com tempo de sobra, sem ação deste aparelho: foi descartado (falha na entrega,
+    // PC suspenso, servidor parado) ou cancelado em outro aparelho (não dá para distinguir)
+    if (scheduled && hadLeft > 5 && !busy && !pendingNote && Date.now() - ownActionAt > 3000)
+      toast("O agendamento foi descartado antes do horário. Veja o log do shutlite.", true);
+    showIdle();
+  }
 }
 
 async function tick(){
@@ -461,17 +792,37 @@ async function tick(){
 }
 
 // ---------------------------------------------------------------- ações
+// done(st, prev): prev descreve o agendamento substituído (ou null)
 async function schedule(seconds, action, path, body, done){
-  if (!await ensurePin()) return;
-  optimistic(seconds, action);
-  const st = await api(path, body);
-  if (st){ paint(st); toast(done(st)); }
-  else tick();  // falhou: volta ao estado real
+  if (busy || !await ensurePin()) return;
+  const prev = scheduled && deadline ? {action: curAction, total, deadline, mode: srvMode} : null;
+  setBusy(true); ownActionAt = Date.now();
+  try {
+    optimistic(seconds, action);
+    const st = await api(path, body);
+    if (st){ paint(st); toast(done(st, prev) + windowsNote(st)); }
+    else {  // falhou: volta ao que estava na tela e confirma com o servidor
+      if (prev){ total = prev.total; deadline = prev.deadline; srvMode = prev.mode; showScheduled(prev.action); }
+      else showIdle();
+      await tick();
+    }
+  } finally { ownActionAt = Date.now(); setBusy(false); }
+}
+function windowsNote(st){ return st.mode === "windows" ? " O Windows vai avisar." : ""; }
+function prevText(prev){
+  return `${(WORDS[prev.action] || WORDS.shutdown).noun} de ${clockTime(prev.deadline)}`;
+}
+function inWhen(st){  // "30 min" em vez de "29:58"; abaixo de 1 min, em segundos
+  const s = Math.max(0, Math.round(st.left));
+  return s < 60 ? `${s} s` : human(Math.round(s / 60));
 }
 function scheduleIn(seconds){
-  const w = WORDS[mode];
-  return schedule(seconds, mode, "/api/" + mode, {seconds},
-    (st) => `${w.noun} em ${fmt(st.left)}. Dá para cancelar a qualquer momento.`);
+  const m = mode, w = WORDS[m];
+  return schedule(seconds, m, "/api/" + m, {seconds}, (st, prev) => {
+    const when = inWhen(st);
+    if (!prev) return `${w.noun} em ${when}. Dá para cancelar a qualquer momento.`;
+    return `${prevText(prev)} trocado por ${prev.action === m ? "" : w.noun.toLowerCase() + " em "}${when}.`;
+  });
 }
 
 document.querySelectorAll(".seg button").forEach((b) => b.addEventListener("click", () => {
@@ -499,7 +850,7 @@ $("mins").addEventListener("input", () => {
 });
 $("btnCustom").addEventListener("click", () => {
   const v = readMins();
-  if (!v){ toast("Digite os minutos, de 1 a 1440. Ex.: 45."); $("mins").focus(); return; }
+  if (!v){ toast("Digite os minutos, de 1 a 1440. Ex.: 45.", true); $("mins").focus(); return; }
   scheduleIn(v * 60);
 });
 
@@ -508,9 +859,11 @@ $("at").addEventListener("input", (e) => {
 });
 $("btnAt").addEventListener("click", () => {
   const v = $("at").value;
-  if (!v || !v.includes(":")){ toast("Escolha o horário. Ex.: 23:30."); $("at").focus(); return; }
-  schedule(secondsUntil(v), mode, "/api/at", {at: v, action: mode},
-    () => `${WORDS[mode].noun} agendado para ${v}.`);
+  if (!v || !v.includes(":")){ toast("Escolha o horário. Ex.: 23:30.", true); $("at").focus(); return; }
+  const m = mode, noun = WORDS[m].noun;
+  schedule(secondsUntil(v), m, "/api/at", {at: v, action: m}, (st, prev) => prev
+    ? `${prevText(prev)} trocado por ${prev.action === m ? v : `${noun.toLowerCase()} às ${v}`}.`
+    : `${noun} agendado para ${v}.`);
 });
 
 $("btnNow").addEventListener("click", async () => {
@@ -530,24 +883,33 @@ $("btnExtend").addEventListener("click", () => {
   const seconds = Math.min(MAX_S, Math.round((deadline - Date.now()) / 1000) + 600);
   schedule(seconds, action, "/api/" + action, {seconds}, () => "Adiado em 10 minutos.");
 });
-$("btnCancel").addEventListener("click", async () => {
-  if (!await ensurePin()) return;
-  showIdle();  // otimista: apaga na hora
-  const st = await api("/api/cancel");
-  if (st){ paint(st); toast("Cancelado. O PC continua ligado."); }
-  else tick();
-});
+// Cancelar (herói) e "Cancelar tudo" (card Agora, sempre visível) usam o mesmo fluxo.
+// Ocioso na tela não garante ocioso no Windows (o servidor pode pedir "Use Cancelar tudo para garantir").
+async function cancelAll(){
+  if (busy || !await ensurePin()) return;
+  const was = scheduled;
+  setBusy(true); ownActionAt = Date.now();
+  pendingNote = "Cancelando…";  // só vira "Ocioso" depois que o servidor confirmar
+  $("actionLabel").textContent = pendingNote;
+  try {
+    const st = await api("/api/cancel");
+    pendingNote = "";
+    if (st){ paint(st); toast(was ? "Cancelado. O PC continua ligado." : "Nada estava agendado. O PC continua ligado."); }
+    else { if (scheduled) showScheduled(curAction); else showIdle(); await tick(); }  // falhou: volta ao estado real
+  } finally { pendingNote = ""; ownActionAt = Date.now(); setBusy(false); }
+}
+$("btnCancel").addEventListener("click", cancelAll);
+$("btnCancelAll").addEventListener("click", cancelAll);
 
 // ---------------------------------------------------------------- acesso
 $("btnPin").addEventListener("click", () => {
   const v = $("pin").value.trim();
-  if (v.length < 4){ toast("PIN curto demais. São ao menos 4 dígitos."); $("pin").focus(); return; }
+  if (v.length < PIN_MIN){ toast(`PIN curto demais. São ao menos ${PIN_MIN} dígitos.`, true); $("pin").focus(); return; }
   setPin(v);
   toast("PIN salvo neste aparelho.");
 });
 $("btnReveal").addEventListener("click", (e) => {
-  const show = e.currentTarget.getAttribute("aria-pressed") !== "true";
-  e.currentTarget.setAttribute("aria-pressed", String(show));
+  const show = e.currentTarget.textContent === "Mostrar";  // só o texto muda (sem aria-pressed)
   e.currentTarget.textContent = show ? "Ocultar" : "Mostrar";
   $("pinShow").textContent = show ? pin : "•".repeat(pin.length || 6);
 });
@@ -558,7 +920,8 @@ async function boot(){
     const r = await fetch("/api/info", {cache: "no-store"});
     if (r.ok) info = await r.json();
   } catch(e){}
-  if (info && info.dry_run) $("sub").textContent = "modo simulação · nada desliga de verdade";
+  if (info && info.dry_run){ $("sub").textContent = "modo simulação · nada desliga de verdade"; $("sub").classList.add("sim"); }
+  if (info && info.version){ $("ver").textContent = "v" + info.version; $("ver").hidden = false; }
   isLocal = !!(info && info.local && info.pin);
   if (!isLocal){
     $("accessRemote").hidden = false;
@@ -572,11 +935,17 @@ async function boot(){
   $("pinShow").textContent = "•".repeat(pin.length);
   const target = info.urls[1] || info.urls[0];  // [0] é localhost
   $("qrurl").textContent = target.replace(/^http:\/\//, "");
-  const box = $("qr"); box.textContent = "";
+  const box = $("qrCode"), note = $("qrNote"), css = getComputedStyle(document.documentElement);
   try {
-    new QRCode(box, {text: `${target}/#pin=${encodeURIComponent(pin)}`, width: 140, height: 140,
-      colorDark: "#111111", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M});
-  } catch(e){ box.textContent = "QR indisponível. Digite o endereço ao lado no celular."; }
+    box.hidden = false;
+    new QRCode(box, {text: `${target}/#pin=${encodeURIComponent(pin)}`, width: 280, height: 280,
+      colorDark: css.getPropertyValue("--qr-ink").trim(), colorLight: css.getPropertyValue("--qr-bg").trim(),
+      correctLevel: QRCode.CorrectLevel.M});
+    note.hidden = true;
+  } catch(e){
+    box.hidden = true; box.textContent = "";
+    note.textContent = "QR indisponível. Digite o endereço ao lado no celular."; note.hidden = false;
+  }
 }
 
 // tempo real: o servidor empurra cada mudança via /api/events (SSE).
@@ -593,7 +962,7 @@ function connect(){
   try { es = new EventSource("/api/events"); } catch(e){ return; }
   es.onopen = () => { setOnline(true); setPoll(5000); };
   es.onmessage = (e) => { try { paint(JSON.parse(e.data)); } catch(err){} };
-  es.onerror = () => setPoll(1000);
+  es.onerror = () => { resync = true; setPoll(1000); };
 }
 syncCustom(); tick(); boot(); connect();
 </script>

@@ -42,7 +42,7 @@ class StateTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.store = Path(self.tmp.name) / "state.json"
         self.run = FakeRunner()
-        self.state = server.ShutdownState(self.run, self.store)
+        self.state = server.ShutdownState(self.run, self.store, native_timer=True)  # fluxo clássico
 
     def test_schedule(self) -> None:
         snap = self.state.schedule(600, "shutdown")
@@ -129,7 +129,8 @@ class HttpTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        cfg = server.Config(port=0, pin=PIN, data_dir=Path(self.tmp.name), bind="127.0.0.1")
+        cfg = server.Config(port=0, pin=PIN, data_dir=Path(self.tmp.name), bind="127.0.0.1",
+                            windows_timer=True)  # fluxo clássico; o silencioso é testado em test_fixes.py
         self.run = FakeRunner()
         self.srv = server.build_server(cfg, self.run)
         self.port = self.srv.server_address[1]
