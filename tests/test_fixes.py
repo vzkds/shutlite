@@ -2460,3 +2460,38 @@ class ReadmeDocumentsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+# -- 9) shutlite.exe (PyInstaller): início automático e abrir o navegador
+
+class FrozenExeTests(unittest.TestCase):
+    def args(self, *argv):
+        return server.parse_args(list(argv))
+
+    def test_double_click_exe_opens_browser(self):
+        with mock.patch.object(server, "FROZEN", True):
+            self.assertTrue(server.should_open_browser(self.args(), []))
+            self.assertFalse(server.should_open_browser(self.args("--no-open"), ["--no-open"]))
+            self.assertFalse(server.should_open_browser(self.args("--port", "4000"), ["--port", "4000"]))
+
+    def test_python_script_opens_browser_only_when_asked(self):
+        with mock.patch.object(server, "FROZEN", False):
+            self.assertFalse(server.should_open_browser(self.args(), []))
+            self.assertTrue(server.should_open_browser(self.args("--open"), ["--open"]))
+            self.assertFalse(server.should_open_browser(self.args("--open", "--no-open"), ["--open", "--no-open"]))
+
+    def test_autostart_script_for_exe_starts_minimized_without_browser(self):
+        exe = str(Path(tempfile.gettempdir()) / "shutlite" / "shutlite.exe")
+        with mock.patch.object(server, "FROZEN", True), mock.patch.object(server.sys, "executable", exe):
+            text = server.autostart_script()
+        self.assertIn('start "" /min', text)
+        self.assertIn(str(Path(exe).resolve()), text)
+        self.assertTrue(text.rstrip("\r\n").endswith("--no-open"))
+        self.assertNotIn("server.py", text)
+        self.assertTrue(text.endswith("\r\n"))
+
+    def test_autostart_script_for_python_runs_server_py(self):
+        with mock.patch.object(server, "FROZEN", False):
+            text = server.autostart_script()
+        self.assertIn("server.py", text)
+        self.assertNotIn("/min", text)

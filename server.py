@@ -44,15 +44,18 @@ import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
+import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, NoReturn
 
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 
 LOG = logging.getLogger("shutlite")
 
-BASE_DIR = Path(__file__).resolve().parent
+# Empacotado com PyInstaller (shutlite.exe): os arquivos da página ficam na pasta temporária do .exe.
+FROZEN = bool(getattr(sys, "frozen", False))
+BASE_DIR = Path(getattr(sys, "_MEIPASS", "")) if FROZEN else Path(__file__).resolve().parent
 WEB_DIR = BASE_DIR / "web"
 INDEX_FILE = WEB_DIR / "index.html"
 
@@ -191,6 +194,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--check", action="store_true",
                    help="sai com 0 se o servidor está rodando na porta da config, 1 se não")
     p.add_argument("--autostart", choices=("on", "off"), help="liga/desliga o início com o Windows")
+    p.add_argument("--open", action="store_true", help="abre o painel no navegador ao iniciar")
+    p.add_argument("--no-open", action="store_true", help="nunca abre o navegador (usado no início automático)")
     p.add_argument("--debug", action="store_true", help="log verboso")
     p.add_argument("--version", action="version", version=f"shutlite {__version__}")
     return p.parse_args(argv)
@@ -1198,7 +1203,7 @@ def print_info(cfg: Config, show_pin: bool) -> None:
     if show_pin:
         print(f"  PIN: {cfg.pin}")
     else:
-        print("  PIN: abra o painel neste PC ou rode: python server.py --info")
+        print(f"  PIN: abra o painel neste PC ou rode: {self_command()} --info")
 
 
 def _self_url(cfg: Config, path: str) -> str:
@@ -1319,6 +1324,29 @@ def check_running(cfg: Config) -> int:
     return 0
 
 
+def self_command() -> str:
+    """Como o usuário chama o shutlite, para as dicas impressas."""
+    return "shutlite.exe" if FROZEN else "python server.py"
+
+
+def autostart_script() -> str:
+    """Conteúdo do .cmd da pasta Inicializar. No shutlite.exe abre minimizado; no Python, sem janela."""
+    if FROZEN:
+        cmd = f'start "" /min "{Path(sys.executable).resolve()}" --no-open'
+    else:
+        pyw = Path(sys.executable).with_name("pythonw.exe")
+        exe = pyw if pyw.exists() else Path(sys.executable)
+        cmd = f'start "" "{exe}" "{Path(__file__).resolve()}"'
+    return f"@echo off\r\nchcp 65001 >nul\r\n{cmd}\r\n"
+
+
+def should_open_browser(args: argparse.Namespace, argv: list[str]) -> bool:
+    """--open abre o painel; o shutlite.exe aberto com dois cliques (sem argumentos) também abre."""
+    if args.no_open:
+        return False
+    return args.open or (FROZEN and not argv)
+
+
 def set_autostart(enable: bool) -> int:
     appdata = os.getenv("APPDATA")
     if os.name != "nt" or not appdata:
@@ -1329,12 +1357,7 @@ def set_autostart(enable: bool) -> int:
         link.unlink(missing_ok=True)
         print("Início automático desligado.")
         return 0
-    pyw = Path(sys.executable).with_name("pythonw.exe")
-    exe = pyw if pyw.exists() else Path(sys.executable)
-    link.write_text(
-        f'@echo off\r\nchcp 65001 >nul\r\nstart "" "{exe}" "{Path(__file__).resolve()}"\r\n',
-        encoding="utf-8",
-    )
+    link.write_text(autostart_script(), encoding="utf-8")
     print(f"Início automático ligado: {link}")
     return 0
 
@@ -1391,8 +1414,10 @@ def main(argv: list[str] | None = None) -> int:
         LOG.error("não deu para abrir a porta %s (o shutlite já está rodando?): %s", cfg.port, exc)
         return 1
     print_info(cfg, show_pin=False)
-    print("Ctrl+C para parar.")
+    print("Feche esta janela ou aperte Ctrl+C para parar." if FROZEN else "Ctrl+C para parar.")
     LOG.info("rodando na porta %s", cfg.port)
+    if should_open_browser(args, sys.argv[1:] if argv is None else argv):
+        webbrowser.open(f"http://localhost:{srv.server_address[1]}")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
@@ -1402,5 +1427,21 @@ def main(argv: list[str] | None = None) -> int:
     return 0
 
 
+def _run_exe() -> int:
+    """No shutlite.exe aberto com dois cliques, um erro na partida fecharia a janela antes de ser lido."""
+    try:
+        code = main()
+    except SystemExit as exc:
+        if exc.code is not None and not isinstance(exc.code, int):
+            print(exc.code)
+        code = exc.code if isinstance(exc.code, int) else (0 if exc.code is None else 1)
+    if code and sys.stdin is not None and sys.stdin.isatty():
+        try:
+            input("\nAperte Enter para fechar.")
+        except (EOFError, KeyboardInterrupt):
+            pass
+    return code
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(_run_exe() if FROZEN else main())

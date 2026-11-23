@@ -22,12 +22,25 @@ se mudar de ideia. É um único arquivo Python, sem dependências e sem Electron
 - Adia em 10 minutos ou cancela a qualquer momento.
 - Pareia o celular pelo QR code: o código já leva o PIN.
 
-## Requisitos
+## Baixar
 
-- Windows 10 ou 11
-- Python 3.9 ou mais novo
+Baixe o `shutlite-X.Y.Z.exe` da [última release](https://github.com/vzkds/shutlite/releases/latest)
+e dê dois cliques. Não precisa instalar nada; funciona no Windows 10 e 11.
 
-## Como usar
+- Ele abre o painel no navegador e mostra os endereços numa janela. Fechar a janela para o shutlite.
+- O `.exe` não tem assinatura digital. Na primeira vez o Windows mostra "O Windows protegeu o
+  computador": clique em **Mais informações** e depois em **Executar assim mesmo**.
+- Os comandos abaixo valem para o `.exe` trocando `python server.py` por `shutlite.exe`, por
+  exemplo `shutlite.exe --info` ou `shutlite.exe --autostart on` (que abre minimizado ao ligar o PC).
+- Para conferir o arquivo, compare o SHA-256 com o `SHA256SUMS.txt` da release:
+
+```bash
+certutil -hashfile shutlite-2.2.0.exe SHA256
+```
+
+## Rodar com Python
+
+Requisitos: Windows 10 ou 11 e Python 3.9 ou mais novo.
 
 Dê dois cliques em `shutlite.bat`, ou rode:
 
@@ -74,6 +87,7 @@ python server.py --autostart on
 | `--allow-host NOME` | Aceita mais um nome no cabeçalho `Host` |
 | `--dry-run` | Modo simulação: nunca chama o `shutdown.exe` |
 | `--windows-timer` | Volta ao timer do Windows desde o início, com o aviso dele (ver "Modo silencioso"). Também vale `"windows_timer": true` no `config.json` |
+| `--open` / `--no-open` | Abre (ou nunca abre) o painel no navegador ao iniciar. O `.exe` aberto com dois cliques abre sozinho |
 | `--debug` | Log detalhado |
 
 Os dados ficam em `%LOCALAPPDATA%\shutlite`. Para trocar o PIN ou a porta de
@@ -193,6 +207,20 @@ python server.py --dry-run --bind 127.0.0.1
 ```
 
 As regras visuais do painel estão em [docs/design-system.md](docs/design-system.md).
+
+### Gerar o .exe e publicar uma versão
+
+```bash
+python -m pip install pyinstaller
+python packaging/make_version_info.py
+pyinstaller packaging/shutlite.spec
+```
+
+O executável sai em `dist/shutlite.exe`. Para publicar, atualize `__version__` no
+`server.py` e o `CHANGELOG.md`, e envie uma tag `vX.Y.Z` na `main`: o workflow
+`.github/workflows/release.yml` testa, gera o `.exe`, confere se ele sobe e publica a
+release com o `.exe`, o código em `.zip` e os SHA-256. O ícone (`Brand/shutlite.ico`) é
+gerado por `packaging/make_icon.py` quando o símbolo muda.
 
 ## Licença
 

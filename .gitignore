@@ -13,3 +13,8 @@ state.json
 .idea/
 Thumbs.db
 .DS_Store
+
+# build do .exe
+build/
+dist/
+packaging/version_info.txt
